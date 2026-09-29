@@ -54,7 +54,8 @@ export function showRouteOverview(map: maplibregl.Map, coords: LngLat[], bottom 
   // da altura da tela, o fitBounds não faz nada: limitamos para sobrar ao menos 120 px de mapa.
   const h = map.getContainer().clientHeight;
   const top = 150;
-  const bottomPad = Math.max(40, Math.min(bottom + 24, h - top - 120));
+  // bottom + 90: a folha + a fileira de botões que fica logo acima dela ("Recentralizar", 56 px + folgas).
+  const bottomPad = Math.max(40, Math.min(bottom + 90, h - top - 120));
   map.fitBounds(bounds, {
     padding: { top, bottom: bottomPad, left: 48, right: 72 }, // à direita, a coluna de botões
     pitch: 0,
