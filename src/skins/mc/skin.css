@@ -131,3 +131,47 @@
   outline: none;
   box-shadow: inset 0 0 0 3px #ffffff, inset 0 0 0 5px #000000;
 }
+
+/* ---------- Minecraft (mapa): moldura, pixelado e caixa de posição ----------
+   A classe moldura-mc vai no contêiner do mapa (metadata.minimapa.containerClass do
+   minecraft-mapa.json) e sai ao trocar de tema. Cores medidas na referência:
+   pergaminho #c1ac88, borda #8b7a62, contorno #4d352b, caixa Position #0b1418. */
+.moldura-mc .maplibregl-canvas {
+  image-rendering: pixelated; /* o mapa é desenhado a meia resolução (themes.ts) */
+}
+.moldura-mc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 10px #c1ac88,
+    inset 0 0 0 13px #8b7a62,
+    inset 0 0 0 14px #4d352b;
+}
+/* Borda serrilhada: "dentes" de pergaminho de 3 px, a cada 6 px, na borda de dentro. */
+.moldura-mc::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, #c1ac88 0 6px, transparent 6px 12px) top / 100% 3px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 6px, #c1ac88 6px 12px) bottom / 100% 3px no-repeat,
+    repeating-linear-gradient(0deg, #c1ac88 0 6px, transparent 6px 12px) left / 3px 100% no-repeat,
+    repeating-linear-gradient(0deg, transparent 0 6px, #c1ac88 6px 12px) right / 3px 100% no-repeat;
+}
+/* A atribuição do OSM fica por cima da moldura. */
+.moldura-mc .maplibregl-ctrl-bottom-right {
+  z-index: 3;
+}
+
+.skin-mc .hud-posicao {
+  background: rgba(11, 20, 24, 0.72);
+  color: #ffffff;
+  font-family: 'Pixelify Sans', 'Courier New', monospace;
+  font-size: 15px;
+  text-shadow: 2px 2px 0 #3f3f3f;
+}

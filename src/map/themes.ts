@@ -65,7 +65,7 @@ export interface ThemeInfo {
 
 // Cores da rota e da interface para os temas do sickmaps (que não trazem as nossas).
 const MINECRAFT_META: ThemeMeta = {
-  label: 'Minecraft',
+  label: 'Minecraft 3D',
   skin: 'mc',
   route: { color: '#ff2a1a', casing: '#3d0500', glow: '#ff6a4d' }, // "redstone"
   // Painéis cinza-claros como o inventário do jogo, com texto cinza-escuro (contraste 6:1).
@@ -102,6 +102,14 @@ export const THEMES: ThemeInfo[] = [
     route: '#ff2a1a',
     accent: '#2f6b1f',
   }, minecraftEnter),
+  // Minecraft (mapa): o visual do item "mapa" do jogo. 2D, pixelado, cores planas por bloco.
+  jsonTheme(
+    'minecraft-mapa',
+    'Minecraft (mapa)',
+    'minecraft-mapa.json',
+    { land: '#6f904e', road: '#575757', route: '#ff2a1a', accent: '#2f6b1f' },
+    { enter: minecraftMapaEnter },
+  ),
   // San Andreas: tema JSON próprio (antes era o do sickmaps, com a lógica invertida:
   // ruas claras sobre fundo escuro). Cores medidas em referencias/sa-mapa.png.
   jsonTheme('san-andreas', 'San Andreas', 'san-andreas.json', {
@@ -116,7 +124,7 @@ export const THEMES: ThemeInfo[] = [
     'Hyrule',
     'hyrule.json',
     { land: '#252729', road: '#a39d7b', route: '#3b9aac', accent: '#584d20' },
-    (style) => adicionarCurvasDeNivel(style, { cor: '#a39d7b', antesDe: 'building' }),
+    { ajustar: (style) => adicionarCurvasDeNivel(style, { cor: '#a39d7b', antesDe: 'building' }) },
   ),
   // Outros temas do sickmaps entram numa linha, ex.:
   // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }, { ...cores }),
@@ -141,13 +149,19 @@ const appliedListeners: Array<(meta: ThemeMeta) => void> = [];
 
 // ---------- Tipos de tema ----------
 
-/** `ajustar` (opcional) mexe no estilo depois de baixado (ex.: inserir curvas de nível). */
+interface OpcoesTemaJson {
+  /** Mexe no estilo depois de baixado (ex.: inserir curvas de nível). */
+  ajustar?: (style: maplibregl.StyleSpecification) => void;
+  /** Liga efeitos extras depois do setStyle; devolve a função que os desfaz. */
+  enter?: (map: maplibregl.Map) => () => void;
+}
+
 function jsonTheme(
   id: string,
   label: string,
   file: string,
   preview: ThemePreview,
-  ajustar?: (style: maplibregl.StyleSpecification) => void,
+  { ajustar, enter }: OpcoesTemaJson = {},
 ): ThemeInfo {
   // BASE_URL cobre o caso de o app ser publicado numa subpasta (GitHub Pages).
   const url = `${import.meta.env.BASE_URL}styles/${file}`;
@@ -162,6 +176,7 @@ function jsonTheme(
       ajustar?.(style);
       return style;
     }),
+    enter,
   };
 }
 
@@ -321,6 +336,24 @@ function minecraftEnter(map: maplibregl.Map): () => void {
   return () => {
     map.off('style.load', install); // se sair antes de o estilo carregar
     undoEnhancements?.(); // remove o listener de 'moveend' e a grade
+    // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
+    map.setPixelRatio(null as unknown as number);
+  };
+}
+
+/**
+ * Minecraft (mapa): como o item "mapa" do jogo, que é plano e feito de "pixels" grandes.
+ *  - Pixelado: o mapa é desenhado a meia resolução (pixelRatio 0,5) e o CSS amplia sem
+ *    suavizar (image-rendering: pixelated, na classe moldura-mc do contêiner).
+ *  - 2D: inclinação máxima 0; a câmera de navegação pede 60°, mas o MapLibre limita a 0.
+ * Tudo é desfeito ao sair do tema.
+ */
+function minecraftMapaEnter(map: maplibregl.Map): () => void {
+  const pitchMaximoAntes = map.getMaxPitch();
+  map.setMaxPitch(0);
+  map.setPixelRatio(0.5);
+  return () => {
+    map.setMaxPitch(pitchMaximoAntes);
     // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
     map.setPixelRatio(null as unknown as number);
   };

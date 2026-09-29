@@ -809,7 +809,8 @@ body[data-sheet='arrived'] .bottom-stack {
   pointer-events: none;
 }
 :root.mostra-posicao .is-navigating .hud-posicao {
-  top: calc(var(--gutter) + var(--safe-top) + 150px);
+  /* abaixo do painel de manobra + chip "Depois" (que termina em ~170 px) */
+  top: calc(var(--gutter) + var(--safe-top) + 166px);
 }
 
 /* ---------- Cor do jogador (folha "Mapas", só nos temas que deixam escolher) ----------
