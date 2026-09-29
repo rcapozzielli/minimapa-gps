@@ -8,9 +8,14 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
 ## O que ele faz
 
 - Mapa em tela cheia seguindo você, com a câmera inclinada em 3D e girando na direção do movimento.
-- Busca de destino com autocomplete, ou **toque e segure** no mapa para marcar um ponto.
+- Busca de destino com autocomplete e **destinos recentes** (toque na busca vazia), ou
+  **toque e segure** no mapa para marcar um ponto.
+- Prévia da rota numa folha embaixo, estilo Google Maps: tempo, distância, chegada e
+  **rotas alternativas** (em cinza no mapa; toque numa delas, no mapa ou na folha, para escolher).
 - Rota com linha grossa no estilo de GPS de jogo; o trecho já percorrido some.
-- Navegação passo a passo em português: painel com a próxima manobra e **voz**.
+- Navegação passo a passo em português: painel com a próxima manobra (e a seguinte, em
+  "Depois"), **voz**, velocímetro e barra com horário de chegada e "Encerrar".
+- Botão **Camadas** (à direita) para escolher o mapa; bússola para voltar o norte para cima.
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
 - Cinco temas: **Los Santos** (GTA V), **Red Dead** (RDR2), **Minecraft**, **San Andreas**
   (GTA SA) e **Hyrule** (Zelda: Breath of the Wild).
@@ -74,7 +79,8 @@ src/map/              mapa, temas, câmera, marcador do jogador, rota, toque lon
 src/geo/              GPS e contas geográficas (distância, projeção na rota)
 src/services/         Photon (busca) e OSRM (rotas)
 src/nav/              navegador, instruções em pt-BR, voz, recálculo, simulador, tela ligada
-src/ui/               barra de busca, painel de manobra, cartão da viagem, botões, ícones
+src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (rota, mapas,
+                      chegada), barra da navegação, botões, velocímetro, ícones
 ```
 
 ## Criar um tema novo

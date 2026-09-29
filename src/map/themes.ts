@@ -281,8 +281,10 @@ function minecraftEnter(map: maplibregl.Map): () => void {
     if (map.getLayer('mc_urban_stone')) map.setPaintProperty('mc_urban_stone', 'fill-pattern', 'mc_stone');
     // A grade de chunks é adicionada por cima de tudo; colocamos abaixo da rota
     // (que o routeLayer.ts já redesenhou neste mesmo 'style.load', num ouvinte anterior).
-    if (map.getLayer('sickmaps-mc-chunk-lines') && map.getLayer('route-glow')) {
-      map.moveLayer('sickmaps-mc-chunk-lines', 'route-glow');
+    // A primeira camada da rota é a das alternativas (route-alt-casing), abaixo da escolhida.
+    const firstRouteLayer = ['route-alt-casing', 'route-glow'].find((id) => map.getLayer(id));
+    if (map.getLayer('sickmaps-mc-chunk-lines') && firstRouteLayer) {
+      map.moveLayer('sickmaps-mc-chunk-lines', firstRouteLayer);
     }
   };
   map.once('style.load', install);

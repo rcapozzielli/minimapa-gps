@@ -21,7 +21,7 @@ const ARRIVE_M = 25;
  * Passos que não viram aviso: "saia da rotatória" (já foi dito "pegue a 2ª saída")
  * e a simples troca de nome da rua seguindo reto (GPS de verdade não fala isso).
  */
-function isSilent(step: Route['steps'][number]): boolean {
+export function isSilent(step: Route['steps'][number]): boolean {
   const { type, modifier } = step.maneuver;
   if (type === 'exit roundabout' || type === 'exit rotary') return true;
   return type === 'new name' && (!modifier || modifier === 'straight' || modifier.startsWith('slight'));

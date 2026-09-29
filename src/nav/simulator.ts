@@ -31,7 +31,11 @@ export function startSimulator(buttonsRoot: HTMLElement): void {
   });
 
   subscribe((s, changed) => {
-    if ('navigating' in changed) detourBtn.hidden = !s.navigating;
+    if ('navigating' in changed) {
+      detourBtn.hidden = !s.navigating;
+      // Fim da navegação: o carro falso para (o velocímetro some).
+      if (!s.navigating && s.speed) setState({ speed: 0 });
+    }
     // Rota nova (ex.: recálculo): o desvio acabou; continua a partir da projeção na nova rota.
     if ('route' in changed) detour = null;
   });

@@ -7,7 +7,7 @@
 .search-field,
 .search-results,
 .maneuver,
-.trip,
+.nav-bar,
 .update,
 .sheet {
   background: var(--ui-panel-bg);
@@ -18,12 +18,26 @@
   box-sizing: border-box;
 }
 
-/* ---------- Busca (topo) ---------- */
-.search {
+/* ---------- Pilha do topo: busca ou manobra + coluna de botões à direita ---------- */
+.top-stack {
   position: absolute;
   top: calc(var(--gutter) + var(--safe-top));
   left: calc(var(--gutter) + var(--safe-left));
   right: calc(var(--gutter) + var(--safe-right));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.top-stack > * {
+  pointer-events: auto;
+}
+
+/* ---------- Busca (topo) ---------- */
+.search {
+  position: relative;
+  z-index: 2; /* a lista de resultados passa por cima da coluna de botões */
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
 }
@@ -66,6 +80,10 @@
   cursor: pointer;
 }
 .search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   list-style: none;
   margin: 8px 0 0;
   padding: 4px 0;
@@ -86,7 +104,7 @@
   border-top: 1px solid var(--ui-divider);
 }
 .search-results li:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .search-results strong {
   font-size: 16px;
@@ -99,18 +117,59 @@
   opacity: 0.7;
   cursor: default;
 }
+/* Destinos recentes: título da seção + itens com ícone de relógio. */
+.search-results .search-heading {
+  min-height: 0;
+  padding: 8px 16px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  cursor: default;
+}
+.search-results .search-heading + li {
+  border-top: 0;
+}
+.search-results li.search-recent {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+}
+.search-recent-icon {
+  flex: none;
+  opacity: 0.7;
+}
+.search-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.search-item-text strong,
+.search-item-text span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ---------- Painel de manobra (topo, durante a navegação) ---------- */
 .is-navigating .search {
   display: none;
 }
-.maneuver {
-  position: absolute;
-  top: calc(var(--gutter) + var(--safe-top));
-  left: calc(var(--gutter) + var(--safe-left));
-  right: calc(var(--gutter) + var(--safe-right));
+/* Painel de manobra + chip "Depois" logo abaixo, alinhado à esquerda. */
+.nav-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
+}
+.maneuver {
+  align-self: stretch;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -150,21 +209,70 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Chip "Depois": a manobra seguinte, em miniatura (é uma caixa .panel). */
+.maneuver-next {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 2px 10px 2px 14px;
+  backdrop-filter: blur(6px);
+}
+.maneuver-next-label {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+.maneuver-next-icon {
+  display: grid;
+  place-items: center;
+  color: var(--ui-accent);
+}
+.maneuver-next-icon svg {
+  width: 30px;
+  height: 30px;
+}
 
-/* ---------- Pilha de baixo: botões + cartão da viagem ---------- */
+/* ---------- Coluna de botões do mapa (src/ui/mapControls.ts) ---------- */
+.map-controls {
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.map-controls > * {
+  pointer-events: auto;
+}
+.compass-needle {
+  transition: transform 120ms linear;
+}
+
+/* ---------- Pilha de baixo: botões + barra da navegação ---------- */
 .bottom-stack {
   position: absolute;
   left: calc(var(--gutter) + var(--safe-left));
   right: calc(var(--gutter) + var(--safe-right));
-  /* 24px acima da faixa de atribuição do OpenStreetMap */
-  bottom: calc(24px + var(--safe-bottom));
-  max-width: 520px;
-  margin: 0 auto;
+  /* 24px acima da faixa de atribuição do OpenStreetMap, que sobe junto com a folha aberta
+     (--sheet-h vem de src/ui/sheet.ts; a folha já inclui a safe area). */
+  bottom: calc(24px + max(var(--safe-bottom), var(--sheet-h, 0px)));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   pointer-events: none;
+  transition: bottom 220ms ease-out;
+}
+.bottom-stack > .nav-bar {
+  width: 100%;
+  max-width: 520px;
+}
+/* Folhas altas (Mapas, chegada): os botões flutuantes não sobem até o meio da tela. */
+body[data-sheet='themes'] .bottom-stack,
+body[data-sheet='arrived'] .bottom-stack {
+  visibility: hidden;
 }
 
 /* Botões grandes: alcançáveis com o polegar. */
@@ -189,13 +297,26 @@
 .fab:active {
   transform: scale(0.96);
 }
+/* Linha de baixo em 3 colunas: velocímetro | Recentralizar (+ simulador) | vazio. */
 .fab-row {
-  display: flex;
-  justify-content: center;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
   gap: 12px;
   pointer-events: none;
 }
-.fab-row > * {
+.fab-row-left {
+  justify-self: start;
+}
+.fab-row-center {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.fab-row-left > *,
+.fab-row-center > * {
   pointer-events: auto;
 }
 .fab-round {
@@ -203,11 +324,109 @@
   width: var(--tap);
   padding: 0;
 }
+/* Pílula com ícone + texto (ex.: "Recentralizar"). */
+.fab-pill {
+  padding: 0 22px 0 18px;
+}
 .fab-sim {
   background: #7a5a00;
+  color: #fff;
 }
 
-.trip {
+/* ---------- Velocímetro (src/ui/speedometer.ts) ----------
+   Redondo de propósito: usa as cores/borda/sombra da skin, mas não o raio nem o clip
+   (uma skin pode dar outra forma com `.skin-x .speedo { ... }`). */
+.speedo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  box-sizing: border-box;
+  border: var(--ui-border);
+  border-radius: 50%;
+  background: var(--ui-panel-bg);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(6px);
+  line-height: 1;
+}
+.speedo-value {
+  font-family: var(--ui-font-display);
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.speedo-unit {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* ---------- Folha "themes": seletor de mapas (src/ui/themePicker.ts) ---------- */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding-bottom: 4px;
+}
+.theme-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 6px 10px;
+  border: 2px solid var(--ui-divider);
+  border-radius: calc(var(--ui-radius) - 2px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease-out;
+}
+.theme-card:active {
+  transform: scale(0.97);
+}
+.theme-thumb {
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: calc(var(--ui-radius) - 6px);
+}
+.theme-thumb svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.theme-name {
+  padding: 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.theme-card.is-current {
+  border-color: var(--ui-accent);
+}
+/* Selo de "atual" (✓) no canto da miniatura. */
+.theme-card.is-current::after {
+  content: '✓';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ui-accent);
+  color: var(--ui-accent-fg);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ---------- Barra de baixo durante a navegação (src/ui/navBar.ts) ---------- */
+.nav-bar {
   align-self: stretch;
   display: flex;
   align-items: center;
@@ -216,34 +435,137 @@
   padding: 8px 8px 8px 20px;
   backdrop-filter: blur(6px);
 }
-.trip-main {
+.nav-bar-main {
   flex: 1;
   min-width: 0;
 }
-.trip-time {
+.nav-bar-eta {
   font-family: var(--ui-font-display);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
   color: var(--ui-accent);
-  text-transform: uppercase;
 }
-.trip-sub {
-  font-size: 14px;
-  opacity: 0.8;
+.nav-bar-sub {
+  font-size: 15px;
+  opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.trip-error .trip-time {
-  color: #ff6b5e;
+.nav-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
 }
-.trip-error .trip-sub {
-  white-space: normal;
+.nav-bar-end-label {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Folha "route": prévia da rota (src/ui/routePreview.ts) ---------- */
+.rp-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.rp-dest {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+  font-size: 17px;
+  font-weight: 700;
+  /* nomes longos quebram em até 2 linhas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rp-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 8px;
+  font-size: 16px;
+  opacity: 0.85;
+}
+.rp-status.is-error {
+  opacity: 1;
+  color: #ff8a80;
+}
+.rp-retry {
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ui-fg);
+}
+.rp-summary {
+  padding: 8px 0 4px;
+}
+.rp-time {
+  font-family: var(--ui-font-display);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--ui-accent);
+}
+.rp-sub {
+  margin-top: 2px;
+  font-size: 15px;
+  opacity: 0.85;
+}
+/* Opções de rota lado a lado (normalmente 2 ou 3); a escolhida com a cor de destaque. */
+.rp-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.route-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 2px solid var(--ui-divider);
+  border-radius: calc(var(--ui-radius) - 4px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+}
+.route-option.is-selected {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 18%, transparent);
+}
+.ro-time {
+  font-family: var(--ui-font-display);
+  font-size: 18px;
+  font-weight: 800;
+}
+.ro-dist,
+.ro-diff {
+  font-size: 13px;
+  opacity: 0.8;
+}
+.route-option.is-selected .ro-diff {
+  opacity: 1;
+}
+.rp-start {
+  width: 100%;
+  margin-top: 16px;
 }
 
 /* Botão de ação principal ("Iniciar") e secundário (✕). */
-.btn-primary,
-.trip-start {
+.btn-primary {
   flex: none;
   height: var(--tap);
   padding: 0 22px;
@@ -258,22 +580,20 @@
   letter-spacing: 0.06em;
   cursor: pointer;
 }
-.btn-secondary,
-.trip-cancel {
+.btn-secondary {
   flex: none;
   min-width: var(--tap);
   height: var(--tap);
   border: 0;
   border-radius: calc(var(--ui-radius) - 2px);
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, currentColor 12%, transparent); /* claro em painel escuro e vice-versa */
   color: inherit;
   font: inherit;
   font-size: 22px;
   cursor: pointer;
 }
 .btn-primary:active,
-.btn-secondary:active,
-.trip-start:active {
+.btn-secondary:active {
   transform: scale(0.96);
 }
 
@@ -301,10 +621,8 @@
 
 /* Aviso de versão nova do app (PWA), logo abaixo da barra de busca. */
 .update {
-  position: absolute;
-  top: calc(80px + var(--safe-top));
-  left: calc(var(--gutter) + var(--safe-left));
-  right: calc(var(--gutter) + var(--safe-right));
+  /* dentro da pilha do topo (logo abaixo da busca), empurrando a coluna de botões */
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
   display: flex;
@@ -377,4 +695,35 @@
   min-height: 0;
   overflow-y: auto;
   touch-action: pan-y; /* dentro do conteúdo, rolar volta a funcionar */
+}
+
+/* ---------- Folha "arrived": chegada (src/ui/arrivedSheet.ts) ---------- */
+.arrived {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+.arrived-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--ui-accent);
+}
+.arrived-dest {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.arrived-ok {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Foco visível para quem navega pelo teclado (não aparece no toque). */
+#ui button:focus-visible,
+#ui [role='option']:focus-visible {
+  outline: 3px solid var(--ui-accent);
+  outline-offset: 2px;
 }
