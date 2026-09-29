@@ -7,7 +7,7 @@
 .search-field,
 .search-results,
 .maneuver,
-.trip,
+.nav-bar,
 .update,
 .sheet {
   background: var(--ui-panel-bg);
@@ -151,20 +151,29 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- Pilha de baixo: botões + cartão da viagem ---------- */
+/* ---------- Pilha de baixo: botões + barra da navegação ---------- */
 .bottom-stack {
   position: absolute;
   left: calc(var(--gutter) + var(--safe-left));
   right: calc(var(--gutter) + var(--safe-right));
-  /* 24px acima da faixa de atribuição do OpenStreetMap */
-  bottom: calc(24px + var(--safe-bottom));
-  max-width: 520px;
-  margin: 0 auto;
+  /* 24px acima da faixa de atribuição do OpenStreetMap, que sobe junto com a folha aberta
+     (--sheet-h vem de src/ui/sheet.ts; a folha já inclui a safe area). */
+  bottom: calc(24px + max(var(--safe-bottom), var(--sheet-h, 0px)));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   pointer-events: none;
+  transition: bottom 220ms ease-out;
+}
+.bottom-stack > .nav-bar {
+  width: 100%;
+  max-width: 520px;
+}
+/* Folhas altas (Mapas, chegada): os botões flutuantes não sobem até o meio da tela. */
+body[data-sheet='themes'] .bottom-stack,
+body[data-sheet='arrived'] .bottom-stack {
+  visibility: hidden;
 }
 
 /* Botões grandes: alcançáveis com o polegar. */
@@ -207,7 +216,8 @@
   background: #7a5a00;
 }
 
-.trip {
+/* ---------- Barra de baixo durante a navegação (src/ui/navBar.ts) ---------- */
+.nav-bar {
   align-self: stretch;
   display: flex;
   align-items: center;
@@ -216,34 +226,137 @@
   padding: 8px 8px 8px 20px;
   backdrop-filter: blur(6px);
 }
-.trip-main {
+.nav-bar-main {
   flex: 1;
   min-width: 0;
 }
-.trip-time {
+.nav-bar-eta {
   font-family: var(--ui-font-display);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
   color: var(--ui-accent);
-  text-transform: uppercase;
 }
-.trip-sub {
-  font-size: 14px;
-  opacity: 0.8;
+.nav-bar-sub {
+  font-size: 15px;
+  opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.trip-error .trip-time {
-  color: #ff6b5e;
+.nav-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
 }
-.trip-error .trip-sub {
-  white-space: normal;
+.nav-bar-end-label {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Folha "route": prévia da rota (src/ui/routePreview.ts) ---------- */
+.rp-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.rp-dest {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+  font-size: 17px;
+  font-weight: 700;
+  /* nomes longos quebram em até 2 linhas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rp-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 8px;
+  font-size: 16px;
+  opacity: 0.85;
+}
+.rp-status.is-error {
+  opacity: 1;
+  color: #ff8a80;
+}
+.rp-retry {
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ui-fg);
+}
+.rp-summary {
+  padding: 8px 0 4px;
+}
+.rp-time {
+  font-family: var(--ui-font-display);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--ui-accent);
+}
+.rp-sub {
+  margin-top: 2px;
+  font-size: 15px;
+  opacity: 0.85;
+}
+/* Opções de rota lado a lado (normalmente 2 ou 3); a escolhida com a cor de destaque. */
+.rp-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.route-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 2px solid var(--ui-divider);
+  border-radius: calc(var(--ui-radius) - 4px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+}
+.route-option.is-selected {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 18%, transparent);
+}
+.ro-time {
+  font-family: var(--ui-font-display);
+  font-size: 18px;
+  font-weight: 800;
+}
+.ro-dist,
+.ro-diff {
+  font-size: 13px;
+  opacity: 0.8;
+}
+.route-option.is-selected .ro-diff {
+  opacity: 1;
+}
+.rp-start {
+  width: 100%;
+  margin-top: 16px;
 }
 
 /* Botão de ação principal ("Iniciar") e secundário (✕). */
-.btn-primary,
-.trip-start {
+.btn-primary {
   flex: none;
   height: var(--tap);
   padding: 0 22px;
@@ -258,22 +371,20 @@
   letter-spacing: 0.06em;
   cursor: pointer;
 }
-.btn-secondary,
-.trip-cancel {
+.btn-secondary {
   flex: none;
   min-width: var(--tap);
   height: var(--tap);
   border: 0;
   border-radius: calc(var(--ui-radius) - 2px);
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, currentColor 12%, transparent); /* claro em painel escuro e vice-versa */
   color: inherit;
   font: inherit;
   font-size: 22px;
   cursor: pointer;
 }
 .btn-primary:active,
-.btn-secondary:active,
-.trip-start:active {
+.btn-secondary:active {
   transform: scale(0.96);
 }
 

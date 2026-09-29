@@ -50,6 +50,14 @@ export function createSheet(root: HTMLElement, id: SheetId, opts: SheetOptions =
   const openListeners: Array<() => void> = [];
   let isOpen = false;
 
+  // Altura da folha aberta em --sheet-h (no <html>): o CSS usa para subir a atribuição do
+  // OpenStreetMap e os botões de baixo, que ficariam escondidos atrás da folha.
+  const publishHeight = () => {
+    if (isOpen) document.documentElement.style.setProperty('--sheet-h', `${el.offsetHeight}px`);
+    else if (getState().sheet === null) document.documentElement.style.setProperty('--sheet-h', '0px');
+  };
+  new ResizeObserver(publishHeight).observe(el);
+
   const render = (open: boolean) => {
     if (open === isOpen) return;
     isOpen = open;
@@ -57,6 +65,7 @@ export function createSheet(root: HTMLElement, id: SheetId, opts: SheetOptions =
     el.setAttribute('aria-hidden', String(!open));
     el.inert = !open; // fechada, não recebe foco nem toques
     if (open) for (const fn of openListeners) fn();
+    publishHeight();
   };
   el.inert = true;
 

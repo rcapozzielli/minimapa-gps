@@ -78,10 +78,12 @@ body {
   overflow: visible;
 }
 
-/* Atribuição do OSM acima da safe area inferior. */
+/* Atribuição do OSM acima da safe area inferior e acima da folha aberta (a folha já
+   inclui a safe area; --sheet-h vem de src/ui/sheet.ts). Nunca fica escondida. */
 .maplibregl-ctrl-bottom-right {
-  margin-bottom: var(--safe-bottom);
+  margin-bottom: max(var(--safe-bottom), var(--sheet-h, 0px));
   margin-right: var(--safe-right);
+  transition: margin-bottom 220ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -19,7 +19,8 @@ import { isSimulation, startSimulator } from './nav/simulator';
 import { createButtons, toast } from './ui/buttons';
 import { createSearchBar } from './ui/searchBar';
 import { createManeuverPanel } from './ui/maneuverPanel';
-import { createTripInfo } from './ui/tripInfo';
+import { createRoutePreview } from './ui/routePreview';
+import { createNavBar } from './ui/navBar';
 import { setupUpdatePrompt } from './ui/updatePrompt';
 
 const ui = document.getElementById('ui')!;
@@ -32,7 +33,7 @@ setupRouteLayer(map);
 // Topo: barra de busca (parado) ou painel de manobra (navegando).
 createSearchBar(ui, () => getState().position ?? map.getCenter().toArray());
 createManeuverPanel(ui);
-// Pilha de baixo: botões flutuantes acima do cartão da viagem.
+// Pilha de baixo: botões flutuantes (sobem junto com a folha aberta).
 const bottom = document.createElement('div');
 bottom.className = 'bottom-stack';
 ui.append(bottom);
@@ -43,11 +44,16 @@ const fabRow = createButtons(bottom, () => {
     () => toast(ui, `Não consegui carregar o tema ${themeLabel(id)}.`),
   );
 });
-createTripInfo(bottom);
+// Barra de chegada/encerrar durante a navegação.
+createNavBar(bottom);
+// Folha de prévia da rota (abre sozinha quando há destino).
+const routeSheet = createRoutePreview(ui);
 
 // A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
 subscribe((s, changed) => {
   if ('navigating' in changed) document.body.classList.toggle('is-navigating', s.navigating);
+  // Qual folha está aberta: o CSS esconde os botões de baixo atrás de folhas altas.
+  if ('sheet' in changed) document.body.dataset.sheet = s.sheet ?? '';
 });
 
 initVoice();
@@ -57,7 +63,9 @@ onLongPress(map, (lngLat) => {
   if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
 });
 // Rotas prontas: enquadra todas as opções (a escolhida e as alternativas).
-startRouting((routes) => showRouteOverview(map, routes.flatMap((r) => r.coords)));
+startRouting((routes) =>
+  showRouteOverview(map, routes.flatMap((r) => r.coords), routeSheet.el.offsetHeight),
+);
 setupNavigator(() => {
   toast(ui, 'Você chegou ao destino!', 'info');
   setState({ destination: null });

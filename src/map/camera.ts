@@ -42,13 +42,21 @@ export function setupCamera(map: maplibregl.Map): void {
   });
 }
 
-/** Mostra a rota inteira vista de cima (sai do modo seguir). */
-export function showRouteOverview(map: maplibregl.Map, coords: LngLat[]): void {
+/**
+ * Mostra a rota inteira vista de cima (sai do modo seguir).
+ * `bottom`: altura (px) coberta embaixo pela folha da rota, para a rota não ficar atrás dela.
+ */
+export function showRouteOverview(map: maplibregl.Map, coords: LngLat[], bottom = 220): void {
+  if (!coords.length) return;
   setState({ following: false });
   const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+  // Espaço para a barra de busca (+ notch) em cima e a folha embaixo. Se o padding passar
+  // da altura da tela, o fitBounds não faz nada: limitamos para sobrar ao menos 120 px de mapa.
+  const h = map.getContainer().clientHeight;
+  const top = 150;
+  const bottomPad = Math.max(40, Math.min(bottom + 24, h - top - 120));
   map.fitBounds(bounds, {
-    // Espaço para a barra de busca (+ notch) em cima e o cartão da viagem embaixo.
-    padding: { top: 150, bottom: 220, left: 40, right: 40 },
+    padding: { top, bottom: bottomPad, left: 48, right: 72 }, // à direita, a coluna de botões
     pitch: 0,
     bearing: 0,
     maxZoom: 17,
