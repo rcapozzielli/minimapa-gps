@@ -1,8 +1,121 @@
 /* Skin "rdr": Red Dead.
-   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-rdr
-   e, se preciso, faz overrides pontuais escopados por .skin-rdr.
-   (Esqueleto da interface: a skin ainda não foi desenhada — Agente C.) */
-.skin-rdr {
+   Interface de papel velho, como o mapa e o diário do jogo (arte própria, só fontes livres):
+   - painéis de pergaminho bege (granulado de papel + bordas "tostadas"), borda de tinta
+     escura com cantos irregulares (raios diferentes em cada canto) e um filete fino por
+     fora, como a moldura de um impresso antigo;
+   - texto em tinta escura; Rye (letra de cartaz de faroeste) nos títulos e números,
+     IM Fell English (tipografia de livro antigo) no corpo.
+   Cores (--ui-bg claro, --ui-fg escuro, --ui-accent vermelho) vêm de
+   public/styles/red-dead.json. `:root.skin-rdr` ganha do :root de base.css sem depender
+   da ordem do CSS. */
+:root.skin-rdr {
+  --rdr-ink: #4a2e1a;
+  /* Granulado de papel (ruído em SVG) + bordas mais escuras (gradiente) + cor do papel. */
+  --ui-panel-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.24 0 0 0 0 0.12 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23p)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(120, 76, 30, 0.2) 100%),
+    var(--ui-bg);
+  --ui-font-display: 'Rye', 'IM Fell English', Georgia, serif;
+  --ui-radius: 5px 11px 6px 13px / 11px 5px 12px 6px; /* cantos "rasgados à mão" */
+  --ui-radius-btn: 9px 5px 11px 6px / 6px 10px 5px 11px;
+  --ui-border: 2px solid var(--rdr-ink);
+  --ui-shadow: inset 0 0 16px rgba(120, 76, 30, 0.35), 0 2px 0 rgba(43, 26, 18, 0.3),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  --ui-clip: none;
+  --ui-divider: rgba(74, 46, 26, 0.25);
+}
+
+/* Rye e IM Fell English só têm peso 400: sem negrito "falso" borrado. */
+.skin-rdr #ui {
+  font-synthesis: none;
+}
+
+/* Filete fino por fora da borda (moldura dupla de impresso antigo). */
+.skin-rdr .panel,
+.skin-rdr .search-field,
+.skin-rdr .maneuver,
+.skin-rdr .trip,
+.skin-rdr .update,
+.skin-rdr .fab {
+  outline: 1px solid rgba(74, 46, 26, 0.55);
+  outline-offset: 2px;
+}
+
+/* Títulos e números em Rye (peso único). */
+.skin-rdr .maneuver-dist,
+.skin-rdr .trip-time,
+.skin-rdr .sheet-title {
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.skin-rdr .sheet-title {
+  font-size: 24px;
+}
+.skin-rdr .maneuver-street {
+  font-size: 20px;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+.skin-rdr .maneuver-action,
+.skin-rdr .trip-sub {
+  font-size: 16px;
+  opacity: 0.85;
+}
+.skin-rdr .maneuver {
+  border-left: 5px solid var(--ui-accent);
+}
+.skin-rdr .search-results strong {
+  font-size: 17px;
+}
+.skin-rdr .search-results span {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.skin-rdr .search-field input::placeholder {
+  opacity: 0.7;
+}
+.skin-rdr .search-results li:active {
+  background: rgba(120, 76, 30, 0.18);
+}
+/* (no botão, background-color trocaria a cor do papel, que é a última camada do fundo) */
+.skin-rdr .fab:active {
+  filter: brightness(0.9);
+}
+
+/* Botões: letra de cartaz, sem negrito. */
+.skin-rdr .fab {
+  font-family: var(--ui-font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.skin-rdr .fab-sim {
+  background: #7a5a00;
+  color: #fff6e6;
+}
+
+/* Botão principal: "carimbo" vermelho de tinta, com borda escura. */
+.skin-rdr .btn-primary,
+.skin-rdr .trip-start,
+.skin-rdr .update button {
+  border: 2px solid #2b1a12;
+  border-radius: var(--ui-radius-btn);
+  font-family: var(--ui-font-display);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  box-shadow: inset 0 0 8px rgba(43, 26, 18, 0.45);
+}
+.skin-rdr .btn-secondary,
+.skin-rdr .trip-cancel {
+  border: 1px solid rgba(74, 46, 26, 0.5);
+  border-radius: var(--ui-radius-btn);
+  background: rgba(120, 76, 30, 0.12);
+}
+.skin-rdr .toast {
+  border: 2px solid #2b1a12;
+  border-radius: var(--ui-radius-btn);
+}
+.skin-rdr .toast-info {
+  font-weight: 400;
 }
 
 /* ---------- Efeito no MAPA: papel envelhecido ----------

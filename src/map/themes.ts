@@ -100,7 +100,7 @@ export const THEMES: ThemeInfo[] = [
     land: '#dec29b',
     road: '#5a4a3a',
     route: '#9e1b1b',
-    accent: '#b22a22',
+    accent: '#9e1b1b',
   }),
   // (cores literais: MC_MAP só é definido mais abaixo no arquivo)
   sickmapsTheme('minecraft', MINECRAFT_META, {

@@ -92,6 +92,47 @@ const GTA: Skin = {
   pinAnchor: 'center',
 };
 
+// ---------- Red Dead ----------
+// Jogador: agulha de bússola dentro de um aro com marcas; a ponta da frente (vermelha) é a
+// direção em que você vai, a de trás é cor de papel. Destino: "X" vermelho de mapa do
+// tesouro, pintado a pincel sobre um traço de tinta escura (âncora no centro).
+const RDR: Skin = {
+  player: `
+<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-rdr-shadow">
+      <stop offset="0" stop-color="#2b1a12" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#2b1a12" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="20" cy="22" rx="17" ry="15" fill="url(#sk-rdr-shadow)"/>
+  <circle cx="20" cy="20" r="13.5" fill="#f4ecd8" fill-opacity=".85" stroke="#2b1a12" stroke-width="2"/>
+  <circle cx="20" cy="20" r="10.5" fill="none" stroke="#2b1a12" stroke-width=".8" stroke-dasharray="1.2 2.1"/>
+  <path d="M20 6.5 V9.5 M33.5 20 H30.5 M20 33.5 V30.5 M6.5 20 H9.5" stroke="#2b1a12" stroke-width="2"/>
+  <path d="M20 1.5 L25.5 20 H14.5 Z" fill="#9e1b1b" stroke="#2b1a12" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M14.5 20 H25.5 L20 36 Z" fill="var(--ui-player-fill)" stroke="#2b1a12" stroke-width="1.8" stroke-linejoin="round"/>
+  <circle cx="20" cy="20" r="2.4" fill="#2b1a12"/>
+  <circle cx="20" cy="20" r="1" fill="#c9a86a"/>
+</svg>`,
+  pin: `
+<svg viewBox="-4 -4 44 44" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-rdr-pin-shadow">
+      <stop offset="0" stop-color="#2b1a12" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#2b1a12" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="18" cy="20" rx="17" ry="14" fill="url(#sk-rdr-pin-shadow)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M6.5 6 Q17 16.5 30 30.5 M29.5 6.5 Q19.5 17 6 30" stroke="#2b1a12" stroke-width="10"/>
+    <path d="M6.5 6 Q17 16.5 30 30.5" stroke="#b3201b" stroke-width="6"/>
+    <path d="M29.5 6.5 Q19.5 17 6 30" stroke="#c42a22" stroke-width="5.5"/>
+    <path d="M9 9.5 Q15 15 19 19" stroke="#e8674f" stroke-width="1.5" stroke-opacity=".7"/>
+  </g>
+</svg>`,
+  pinAnchor: 'center',
+};
+
 // ---------- San Andreas ----------
 // Jogador: seta branca "chapada" com contorno preto grosso e cantos vivos, como a seta do
 // radar do SA. Destino: blip quadrado vermelho de contorno preto (âncora no centro).
@@ -131,7 +172,7 @@ const SA: Skin = {
 const SKINS: Record<string, Skin> = {
   gta: GTA, // Los Santos (GTA V)
   sa: SA, // San Andreas (GTA SA)
-  rdr: { ...DEFAULT }, // Red Dead
+  rdr: RDR, // Red Dead
   mc: { ...DEFAULT }, // Minecraft
   zelda: { ...DEFAULT }, // Hyrule (Zelda BotW)
 };

@@ -8,12 +8,13 @@
       "containerClass": "theme-red-dead",
       "route": { "color": "#9e1b1b", "casing": "#2b1a12", "glow": "#c0392b" },
       "ui": {
-        "bg": "rgba(22, 17, 12, 0.9)",
-        "fg": "#efe4cc",
-        "accent": "#b22a22",
+        "bg": "rgba(241, 230, 204, 0.97)",
+        "fg": "#2b1a12",
+        "accent": "#9e1b1b",
+        "accent-fg": "#fff6e6",
         "player-fill": "#f4ecd8",
         "player-stroke": "#2b1a12",
-        "font": "Georgia, 'Times New Roman', 'Noto Serif', serif"
+        "font": "'IM Fell English', Georgia, 'Times New Roman', serif"
       }
     }
   },
