@@ -10,6 +10,13 @@ const MIN_MOVE_M = 6;
 let lastForHeading: LngLat | null = null;
 
 export function startLocation(onError: (msg: string) => void): void {
+  // Para testar no PC: ?pos=-23.5874,-46.6576 fixa uma posição falsa (lat,lng).
+  const fake = new URLSearchParams(location.search).get('pos')?.split(',').map(Number);
+  if (fake?.length === 2 && fake.every(Number.isFinite)) {
+    setState({ position: [fake[1], fake[0]], accuracy: 5 });
+    return;
+  }
+
   if (!('geolocation' in navigator)) {
     onError('Este navegador não tem GPS.');
     return;

@@ -1,7 +1,7 @@
 // Modo "seguir": a câmera acompanha o jogador, inclinada em 3D e girada
 // na direção do movimento. Arrastar o mapa sai do modo seguir.
-import type * as maplibregl from 'maplibre-gl';
-import { getState, setState, subscribe } from '../state';
+import * as maplibregl from 'maplibre-gl';
+import { getState, setState, subscribe, type LngLat } from '../state';
 
 const FOLLOW_PITCH = 60;
 const FOLLOW_ZOOM = 17;
@@ -27,6 +27,20 @@ export function setupCamera(map: maplibregl.Map): void {
     if (s.following && (changed.position || changed.heading != null || recentered)) {
       follow(map, recentered);
     }
+  });
+}
+
+/** Mostra a rota inteira vista de cima (sai do modo seguir). */
+export function showRouteOverview(map: maplibregl.Map, coords: LngLat[]): void {
+  setState({ following: false });
+  const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+  map.fitBounds(bounds, {
+    // Espaço para a barra de busca (+ notch) em cima e o cartão da viagem embaixo.
+    padding: { top: 150, bottom: 220, left: 40, right: 40 },
+    pitch: 0,
+    bearing: 0,
+    maxZoom: 17,
+    duration: 800,
   });
 }
 
