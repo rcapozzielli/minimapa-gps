@@ -1,0 +1,12 @@
+<svg data-anchor="bottom" viewBox="0 0 36 52" width="36" height="52" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-default-pin-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="18" cy="48" rx="9" ry="3.5" fill="url(#sk-default-pin-shadow)"/>
+  <path d="M18 2C9.2 2 2 9 2 17.7 2 29.5 18 46 18 46s16-16.5 16-28.3C34 9 26.8 2 18 2z"
+        fill="var(--ui-accent)" stroke="#000" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="18" cy="18" r="6" fill="#fff"/>
+</svg>

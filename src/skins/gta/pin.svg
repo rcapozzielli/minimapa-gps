@@ -1,0 +1,13 @@
+<svg data-anchor="center" viewBox="-4 -4 44 44" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-gta-pin-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="18" cy="20" rx="17" ry="15" fill="url(#sk-gta-pin-shadow)"/>
+  <circle cx="18" cy="18" r="14" fill="#1a1c1e"/>
+  <circle cx="18" cy="18" r="12" fill="#ffffff"/>
+  <circle cx="18" cy="18" r="9.5" fill="var(--ui-accent)"/>
+  <path d="M18 12 L24 18 L18 24 L12 18 Z" fill="#ffffff"/>
+</svg>

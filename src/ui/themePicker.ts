@@ -3,8 +3,8 @@
 // Tocar num cartão troca o tema e fecha a folha. Funciona com qualquer número de
 // temas: tudo vem da lista THEMES de src/map/themes.ts.
 import type * as maplibregl from 'maplibre-gl';
-import { setState } from '../state';
-import { THEMES, getTargetThemeId, setTheme, type ThemePreview } from '../map/themes';
+import { setState, subscribe, type CorJogador } from '../state';
+import { THEMES, getTargetThemeId, getThemeMeta, setTheme, type ThemePreview } from '../map/themes';
 import { createSheet } from './sheet';
 import { toast } from './buttons';
 
@@ -50,7 +50,9 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
   });
   grid.append(...cards);
 
-  // Ao abrir, marca o tema atual.
+  const cores = createCorJogador(sheet.body);
+
+  // Ao abrir, marca o tema atual e mostra a escolha de cor só nos temas que a usam.
   sheet.onOpen(() => {
     const current = getTargetThemeId();
     for (const card of cards) {
@@ -58,5 +60,57 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
       card.classList.toggle('is-current', on);
       card.setAttribute('aria-checked', String(on));
     }
+    cores.hidden = !SKINS_COM_COR.has(getThemeMeta().skin ?? '');
   });
+}
+
+// ---------- Cor do jogador ----------
+// Nos temas do GTA V dá para escolher a cor da seta, como os três protagonistas. A escolha
+// vira o atributo data-cor-jogador no <html>; as cores ficam no skin.css do tema.
+const SKINS_COM_COR = new Set(['gta']);
+const CORES: Array<[CorJogador, string]> = [
+  ['verde', 'Verde (Franklin)'],
+  ['azul', 'Azul (Michael)'],
+  ['laranja', 'Laranja (Trevor)'],
+];
+const CHAVE_COR = 'minimapa:cor-jogador';
+
+function createCorJogador(parent: HTMLElement): HTMLElement {
+  const linha = document.createElement('div');
+  linha.className = 'cor-jogador';
+  linha.setAttribute('role', 'radiogroup');
+  linha.setAttribute('aria-label', 'Cor do jogador');
+  linha.innerHTML = '<span class="cor-jogador-titulo">Personagem</span>';
+  const botoes = CORES.map(([cor, nome]) => {
+    const b = document.createElement('button');
+    b.className = 'cor-jogador-opcao';
+    b.dataset.cor = cor;
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-label', nome);
+    b.addEventListener('click', () => setState({ corJogador: cor }));
+    return b;
+  });
+  linha.append(...botoes);
+  parent.append(linha);
+
+  subscribe((s, changed) => {
+    if (!('corJogador' in changed)) return;
+    document.documentElement.dataset.corJogador = s.corJogador;
+    for (const b of botoes) b.setAttribute('aria-checked', String(b.dataset.cor === s.corJogador));
+    try {
+      localStorage.setItem(CHAVE_COR, s.corJogador);
+    } catch {
+      /* sem armazenamento: vale só nesta sessão */
+    }
+  });
+
+  let salva: string | null = null;
+  try {
+    salva = localStorage.getItem(CHAVE_COR);
+  } catch {
+    /* sem armazenamento */
+  }
+  const inicial = CORES.find(([c]) => c === salva)?.[0] ?? 'verde';
+  setState({ corJogador: inicial });
+  return linha;
 }

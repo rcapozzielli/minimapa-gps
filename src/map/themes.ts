@@ -21,6 +21,7 @@ import {
   type GameMapTheme,
 } from '@iantroisi/sickmaps';
 import '@iantroisi/sickmaps/css';
+import { imagemDeTextura } from './patterns';
 
 export interface ThemeMeta {
   label: string;
@@ -30,6 +31,12 @@ export interface ThemeMeta {
   containerClass?: string;
   /** Skin da interface (fonte, forma dos painéis, ícones); ver src/skins/index.ts. */
   skin?: string;
+  /**
+   * Peças de HUD que o tema liga (ver src/ui/hud.ts): 'local' (caixa BAIRRO / RUA),
+   * 'escala' (barra de escala), 'regiao' (nome grande do bairro), 'posicao' (coordenadas).
+   * Cada uma vira a classe `hud-<peça>` no <html>.
+   */
+  hud?: string[];
 }
 
 /** Cores para desenhar a miniatura do tema no seletor, sem precisar baixar o estilo. */
@@ -138,6 +145,7 @@ const STORAGE_KEY = 'minimapa:theme';
 let currentMeta: ThemeMeta = DEFAULT_META;
 let appliedUiKeys: string[] = [];
 let appliedSkinClass: string | null = null;
+let appliedHudClasses: string[] = [];
 let current: { id: string; teardown: () => void } | null = null;
 let switchToken = 0;
 /** Último tema pedido (pode ainda estar carregando), ou null se nenhum troca está pendente. */
@@ -241,6 +249,29 @@ function tuneMinecraft(style: maplibregl.StyleSpecification): void {
     paint: { 'fill-color': MC_MAP.stone, 'fill-antialias': false },
   });
 }
+
+/**
+ * Calçadas e caminhos de pedestre só a partir do zoom 17, em todo tema (inclusive os do
+ * sickmaps): antes disso viram um tracejado denso que polui o mapa. Pega as camadas de
+ * `transportation` cujo filtro trata de `class = path` sem misturar com ruas de verdade.
+ */
+const CLASSES_DE_RUA = /"(motorway|trunk|primary|secondary|tertiary|minor|service)"/;
+
+function pedestresSoNoZ17(style: maplibregl.StyleSpecification): void {
+  for (const layer of style.layers) {
+    if (!('source-layer' in layer) || layer['source-layer'] !== 'transportation') continue;
+    const filtro = JSON.stringify(layer.filter ?? '');
+    if (filtro.includes('"path"') && !CLASSES_DE_RUA.test(filtro)) {
+      layer.minzoom = Math.max(layer.minzoom ?? 0, 17);
+    }
+  }
+}
+
+// FONTES DOS RÓTULOS: um tema JSON SEM `glyphs` desenha os rótulos com as fontes da própria
+// página (src/styles/fonts.css), no modo de fontes locais do MapLibre (GL JS >= 5.11), que já
+// espera a fonte carregar antes de desenhar. Em `text-font` use SÓ o nome exato da família CSS
+// ("Oswald", "Rye", "Cinzel"...): o MapLibre usa o nome inteiro como família, então
+// "Oswald SemiBold" não existiria e cairia numa fonte genérica.
 
 /** Guarda o estilo pronto: trocar de volta para um tema não baixa nada de novo. */
 function cached(fn: () => Promise<maplibregl.StyleSpecification>) {
@@ -346,10 +377,13 @@ export function bindThemes(map: maplibregl.Map): void {
   // Rede de segurança: logo depois de sair do Minecraft, o worker do MapLibre ainda pode
   // processar um tile com as camadas antigas e pedir uma textura "mc_*" que já não existe
   // (só gera um aviso no console). Respondemos com uma imagem transparente de 1×1.
+  // O mesmo resolvedor cria as nossas texturas geradas em código (src/map/patterns.ts),
+  // pedidas pelos temas pelo nome em background-pattern / fill-pattern.
   map.setMissingStyleImageResolver((id) => {
-    if (id.startsWith('mc_') && !map.hasImage(id)) {
-      map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
-    }
+    if (map.hasImage(id)) return;
+    const textura = imagemDeTextura(id);
+    if (textura) map.addImage(id, textura);
+    else if (id.startsWith('mc_')) map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
   });
 
   map.on('style.load', () => {
@@ -361,6 +395,7 @@ export function bindThemes(map: maplibregl.Map): void {
     };
     applyUiVars(currentMeta.ui);
     applySkinClass(currentMeta.skin);
+    applyHudClasses(currentMeta.hud ?? []);
     for (const fn of appliedListeners) fn(currentMeta);
   });
 }
@@ -373,6 +408,7 @@ export async function setTheme(map: maplibregl.Map, id: string): Promise<void> {
   let style: maplibregl.StyleSpecification;
   try {
     style = await theme.load();
+    pedestresSoNoZ17(style);
   } catch (err) {
     if (token === switchToken) requestedId = null; // falhou: o alvo volta a ser o tema atual
     throw err;
@@ -409,6 +445,14 @@ function applyUiVars(ui: Record<string, string>): void {
   for (const key of appliedUiKeys) root.removeProperty(`--ui-${key}`);
   for (const [key, value] of Object.entries(ui)) root.setProperty(`--ui-${key}`, value);
   appliedUiKeys = Object.keys(ui);
+}
+
+/** Troca as classes `hud-<peça>` do <html> (liga as peças de HUD do tema; ver src/ui/hud.ts). */
+function applyHudClasses(pecas: string[]): void {
+  const cl = document.documentElement.classList;
+  for (const c of appliedHudClasses) cl.remove(c);
+  appliedHudClasses = pecas.map((p) => `hud-${p}`);
+  for (const c of appliedHudClasses) cl.add(c);
 }
 
 /** Troca a classe `skin-<id>` do <html> (liga o CSS da skin; ver src/skins/). */

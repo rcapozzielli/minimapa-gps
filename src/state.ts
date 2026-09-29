@@ -5,6 +5,9 @@ import type { Route } from './services/osrm';
 
 export type LngLat = [number, number];
 
+/** Cor da seta do jogador nos temas que deixam escolher (GTA V: os três protagonistas). */
+export type CorJogador = 'verde' | 'azul' | 'laranja';
+
 /** Folhas de baixo do app: prévia da rota, seletor de temas, chegada. */
 export type SheetId = 'route' | 'themes' | 'arrived';
 
@@ -36,6 +39,8 @@ export interface AppState {
   routeIndex: number;
   /** Qual folha de baixo está aberta (ver src/ui/sheet.ts), ou null. */
   sheet: SheetId | null;
+  /** Cor escolhida para a seta do jogador (salva no aparelho por src/ui/themePicker.ts). */
+  corJogador: CorJogador;
   routeLoading: boolean;
   routeError: string | null;
   /** Navegação passo a passo ligada? (depois de tocar em "Iniciar") */
@@ -65,6 +70,7 @@ const state: AppState = {
   routes: [],
   routeIndex: 0,
   sheet: null,
+  corJogador: 'verde',
   routeLoading: false,
   routeError: null,
   navigating: false,

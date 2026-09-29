@@ -25,6 +25,7 @@ import { createSpeedometer } from './ui/speedometer';
 import { createRoutePreview } from './ui/routePreview';
 import { createNavBar } from './ui/navBar';
 import { createThemePicker } from './ui/themePicker';
+import { createHud } from './ui/hud';
 import { createArrivedSheet } from './ui/arrivedSheet';
 import { setupUpdatePrompt } from './ui/updatePrompt';
 
@@ -53,6 +54,8 @@ ui.append(bottom);
 const fabRow = createButtons(bottom);
 createSpeedometer(fabRow.left);
 createNavBar(bottom);
+// HUD do tema (escala, BAIRRO / RUA, nome da região, coordenadas): cada tema liga as suas peças.
+createHud(ui, bottom, map);
 
 // Folhas de baixo: prévia da rota (abre sozinha quando há destino), seletor de mapas e chegada.
 const routeSheet = createRoutePreview(ui);
