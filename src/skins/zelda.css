@@ -1,6 +1,115 @@
-/* Skin "zelda": Hyrule (Zelda BotW).
-   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-zelda
-   e, se preciso, faz overrides pontuais escopados por .skin-zelda.
-   (Esqueleto: a skin ainda não foi desenhada — Agente B.) */
+/* Skin "zelda": Hyrule (inspirada na tela do Sheikah Slate, Zelda BotW).
+   Painéis azul-escuros translúcidos, borda fina ciano com brilho e cantos chanfrados.
+
+   Os chanfros usam clip-path (--ui-clip), que corta TUDO o que fica fora do polígono,
+   inclusive a sombra e a borda. Por isso:
+    - o polígono é desenhado 16px PARA FORA da caixa nos lados retos (o brilho de
+      --ui-shadow continua aparecendo) e só corta de verdade nos cantos, na diagonal
+      x + y = 10px;
+    - como a borda some na diagonal, o fundo (--ui-panel-bg) desenha um fio ciano de
+      1,5px exatamente ali, com um gradiente em cada canto. Assim o contorno fica fechado.
+   Cores (fundo, texto, destaque) vêm do bloco "ui" de public/styles/hyrule.json. */
 .skin-zelda {
+  /* Cor do fio da borda (também usado nas diagonais dos cantos). */
+  --hy-line: rgba(95, 222, 250, 0.85);
+  /* Fio diagonal de cada canto: a diagonal do corte fica a 7,07px do canto (10px / √2). */
+  --hy-corner-tl: linear-gradient(135deg, transparent 7px, var(--hy-line) 7px 8.6px, transparent 8.6px)
+    top left / 16px 16px no-repeat border-box;
+  --hy-corner-tr: linear-gradient(225deg, transparent 7px, var(--hy-line) 7px 8.6px, transparent 8.6px)
+    top right / 16px 16px no-repeat border-box;
+  --hy-corner-bl: linear-gradient(45deg, transparent 7px, var(--hy-line) 7px 8.6px, transparent 8.6px)
+    bottom left / 16px 16px no-repeat border-box;
+  --hy-corner-br: linear-gradient(315deg, transparent 7px, var(--hy-line) 7px 8.6px, transparent 8.6px)
+    bottom right / 16px 16px no-repeat border-box;
+  /* Recheio: um leve reflexo ciano no alto, sobre o azul-escuro do tema. */
+  --hy-fill: linear-gradient(180deg, rgba(64, 208, 242, 0.1), rgba(64, 208, 242, 0) 45%), var(--ui-bg);
+
+  --ui-panel-bg: var(--hy-corner-tl), var(--hy-corner-tr), var(--hy-corner-bl), var(--hy-corner-br),
+    var(--hy-fill);
+  --ui-font-display: 'Cinzel', Georgia, serif;
+  --ui-radius: 2px; /* quase reto: quem manda na forma é o chanfro */
+  --ui-radius-btn: 2px;
+  --ui-border: 1px solid var(--hy-line);
+  /* Anel escuro de 1px (separa o ciano do mapa claro) + brilho ciano + sombra de profundidade. */
+  --ui-shadow: 0 0 0 1px rgba(3, 12, 18, 0.55), 0 0 12px rgba(64, 208, 242, 0.45),
+    0 6px 16px rgba(0, 0, 0, 0.3);
+  --ui-clip: polygon(
+    -16px 26px,
+    26px -16px,
+    calc(100% - 26px) -16px,
+    calc(100% + 16px) 26px,
+    calc(100% + 16px) calc(100% - 26px),
+    calc(100% - 26px) calc(100% + 16px),
+    26px calc(100% + 16px),
+    -16px calc(100% - 26px)
+  );
+  --ui-divider: rgba(95, 222, 250, 0.18);
+  --ui-accent-fg: #04202b; /* azul quase preto sobre o ciano: 9,2:1 */
+
+  /* Chanfro "justo" (sem folga para brilho), para botões sem sombra externa. */
+  --hy-clip-tight: polygon(
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px),
+    0 8px
+  );
+  /* Só os cantos de cima (folha de baixo, que encosta na borda da tela). */
+  --hy-clip-top: polygon(
+    -16px 26px,
+    26px -16px,
+    calc(100% - 26px) -16px,
+    calc(100% + 16px) 26px,
+    calc(100% + 16px) calc(100% + 16px),
+    -16px calc(100% + 16px)
+  );
+}
+
+/* Folha de baixo: chanfro só em cima (e sem os fios diagonais de baixo). */
+.skin-zelda .sheet {
+  background: var(--hy-corner-tl), var(--hy-corner-tr), var(--hy-fill);
+  clip-path: var(--hy-clip-top);
+}
+.skin-zelda .sheet-handle::before {
+  height: 3px;
+  background: var(--ui-accent);
+  opacity: 0.7;
+}
+
+/* Botões flutuantes: mesma placa chanfrada dos painéis (o redondo vira um octógono). */
+.skin-zelda .fab {
+  clip-path: var(--ui-clip);
+  font-family: var(--ui-font-display);
+}
+
+/* Ação principal: placa ciano chanfrada com um filete claro por dentro. */
+.skin-zelda .btn-primary,
+.skin-zelda .trip-start {
+  border-radius: 0;
+  clip-path: var(--hy-clip-tight);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+.skin-zelda .btn-secondary,
+.skin-zelda .trip-cancel {
+  border-radius: 0;
+  clip-path: var(--hy-clip-tight);
+  background: rgba(64, 208, 242, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(95, 222, 250, 0.45);
+}
+
+/* Números e títulos com um brilho discreto de "tela Sheikah". */
+.skin-zelda .maneuver-dist,
+.skin-zelda .trip-time,
+.skin-zelda .sheet-title {
+  text-shadow: 0 0 8px rgba(64, 208, 242, 0.45);
+}
+.skin-zelda .search-results li:active {
+  background: rgba(64, 208, 242, 0.14);
+}
+.skin-zelda button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
 }

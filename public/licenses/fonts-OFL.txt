@@ -1,0 +1,18 @@
+Fontes da interface do Minimapa GPS
+===================================
+
+As fontes abaixo são usadas só na interface do app (não nos rótulos do mapa).
+Foram empacotadas pelo Fontsource (https://fontsource.org) e são servidas pelo
+próprio app. Todas são distribuídas sob a SIL Open Font License, versão 1.1:
+https://openfontlicense.org
+
+- Oswald            (@fontsource/oswald)          SIL OFL 1.1
+- Rye               (@fontsource/rye)             SIL OFL 1.1
+- IM Fell English   (@fontsource/im-fell-english) SIL OFL 1.1
+- Pixelify Sans     (@fontsource/pixelify-sans)   SIL OFL 1.1
+- Pirata One        (@fontsource/pirata-one)      SIL OFL 1.1
+- Cinzel            (@fontsource/cinzel)          SIL OFL 1.1
+
+Os direitos autorais de cada fonte pertencem aos seus autores, conforme os
+avisos de copyright incluídos nos pacotes originais (Google Fonts).
+Texto completo da licença: https://openfontlicense.org/open-font-license-official-text/

@@ -90,6 +90,12 @@ export const THEMES: ThemeInfo[] = [
     route: '#ff2a1a',
     accent: '#5b9c3a',
   }, minecraftEnter),
+  jsonTheme('hyrule', 'Hyrule', 'hyrule.json', {
+    land: '#d4cfae',
+    road: '#f5efd9',
+    route: '#26b0e0',
+    accent: '#40d0f2',
+  }),
   // Outros temas do sickmaps entram numa linha, ex.:
   // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }, { ...cores }),
 ];
