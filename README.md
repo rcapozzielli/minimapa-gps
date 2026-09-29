@@ -17,8 +17,13 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
   "Depois"), **voz**, velocímetro e barra com horário de chegada e "Encerrar".
 - Botão **Camadas** (à direita) para escolher o mapa; bússola para voltar o norte para cima.
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
-- Cinco temas: **Los Santos** (GTA V), **Red Dead** (RDR2), **Minecraft**, **San Andreas**
-  (GTA SA) e **Hyrule** (Zelda: Breath of the Wild).
+- Seis temas, com as cores medidas em capturas dos jogos (`referencias/paletas.md`):
+  **Los Santos** (GTA V), **San Andreas** (GTA SA), **Red Dead** (RDR2), **Hyrule**
+  (Zelda: Tears of the Kingdom), **Minecraft (mapa)** e **Minecraft 3D**. Cada tema tem a
+  sua fonte, os seus painéis, a sua seta de jogador e o seu HUD (caixa de bairro e rua,
+  bússola, nome da região, coordenadas).
+- Ícones de **pontos de interesse** (restaurantes, postos, farmácias, hotéis...) no estilo de
+  cada jogo, a partir do zoom 15; tocar mostra o nome. Um botão liga e desliga.
 - Instalável na tela inicial; a tela fica ligada durante a navegação.
 
 ## Rodar localmente
@@ -44,7 +49,8 @@ no Firewall do Windows (rede privada).
 
 - `?sim=1`: **modo simulação**. Depois de tocar em "Iniciar", um carro falso percorre a
   rota a ~50 km/h. O botão "Desviar (sim)" joga o carro 80 m para fora da rota, para testar
-  o recálculo. No console do navegador, `minimapa.map` e `minimapa.getState()` ajudam a depurar.
+  o recálculo. No console do navegador, `minimapa.map`, `minimapa.getState()` e
+  `minimapa.setState()` ajudam a depurar (os scripts de teste usam os mesmos).
 - `?pos=lat,lng`: fixa uma posição falsa (ex.: `?pos=-23.5614,-46.6559`).
 - No PC, dá para simular o GPS pelo DevTools: F12 → ⋮ → More tools → **Sensors**.
 
@@ -80,43 +86,56 @@ src/geo/              GPS e contas geográficas (distância, projeção na rota)
 src/services/         Photon (busca) e OSRM (rotas)
 src/nav/              navegador, instruções em pt-BR, voz, recálculo, simulador, tela ligada
 src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (rota, mapas,
-                      chegada), barra da navegação, botões, velocímetro, ícones
+                      chegada), barra da navegação, botões, velocímetro, HUD dos temas
+src/skins/<skin>/     a cara de jogo de cada tema: skin.css, player.svg, pin.svg, poi/*.svg
+src/styles/           fontes, variáveis e componentes da interface
+referencias/          paletas medidas dos jogos, prints antes/depois e os scripts de teste
+                      (as capturas dos jogos em si ficam fora do git)
+scripts/              gerador dos ícones de pontos de interesse
 ```
 
 ## Criar um tema novo
 
-1. **Duplique** um tema existente: copie `public/styles/los-santos.json` para
-   `public/styles/meu-tema.json`.
-2. **Edite as cores.** As camadas estão agrupadas na ordem em que são desenhadas:
-   fundo → áreas → água → prédios → ruas → rótulos. As mais úteis:
-   - `background`: cor do "chão";
-   - `water`, `park`, `building`;
-   - `road-minor`, `road-secondary`, `road-primary`, `road-motorway`;
-   - `label-*`: textos (fonte, tamanho, `text-transform: uppercase`).
-3. **Cores da rota e da interface** ficam no bloco `metadata.minimapa`:
+Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta de skin**
+(`src/skins/<skin>/`).
+
+1. **Estilo.** Copie `public/styles/los-santos.json` para `public/styles/meu-tema.json` e
+   troque as cores. As camadas estão na ordem em que são desenhadas: fundo → áreas → água →
+   prédios → ruas → rótulos. Texturas geradas pelo app podem ser usadas pelo nome em
+   `background-pattern`/`fill-pattern` (`papel-rdr`, `grade-hyrule`, `agua-mc`; ver
+   `src/map/patterns.ts`).
+2. **Fontes dos nomes.** Os temas não têm `glyphs`: o MapLibre desenha os nomes com as fontes
+   da página (`src/styles/fonts.css`). Em `text-font`, use só o nome exato da família CSS
+   (`["Oswald"]`, `["Rye"]`...), sem "Bold" etc.
+3. **Bloco `metadata.minimapa`:**
 
    ```json
    "metadata": {
      "minimapa": {
        "label": "Meu Tema",
+       "skin": "meu-tema",
+       "hud": ["local", "escala"],
        "route": { "color": "#ff0", "casing": "#330", "glow": "#ff8" },
        "ui": { "bg": "rgba(0,0,0,.9)", "fg": "#fff", "accent": "#ff0",
-               "player-fill": "#fff", "player-stroke": "#000", "font": "system-ui" },
-       "containerClass": "theme-meu-tema"
+               "player-fill": "#fff", "player-stroke": "#000", "font": "system-ui" }
      }
    }
    ```
 
-   `containerClass` é opcional: uma classe CSS aplicada ao mapa enquanto o tema estiver
-   ativo, para efeitos por cima do mapa. Veja `.theme-red-dead` em `src/styles.css`.
-4. **Registre** o tema em `src/map/themes.ts`, na lista `THEMES`:
+   `hud` (opcional): `local` (caixa BAIRRO / RUA), `escala`, `regiao` (nome grande do bairro),
+   `posicao` (coordenadas), `bussola`. `containerClass` (opcional): classe CSS no mapa
+   enquanto o tema estiver ativo (ex.: a moldura do Minecraft (mapa)).
+4. **Pasta da skin** `src/skins/meu-tema/`: `skin.css` (variáveis em `:root.skin-meu-tema`),
+   `player.svg`, `pin.svg` e `poi/<categoria>.svg` (restaurante, fast-food, bar, cafe, loja,
+   posto, farmacia, hotel). O que faltar vem de `src/skins/padrao/`. Não precisa registrar
+   nada: o app encontra a pasta sozinho.
+5. **Registre** o estilo em `src/map/themes.ts`, na lista `THEMES`:
 
    ```ts
-   jsonTheme('meu-tema', 'Meu Tema', 'meu-tema.json'),
+   jsonTheme('meu-tema', 'Meu Tema', 'meu-tema.json', { land: '#222', road: '#999', route: '#ff0', accent: '#ff0' }),
    ```
 
-5. Enquanto edita, `npm run dev` + recarregar a página mostra as mudanças do JSON.
-   Para conferir se o estilo é válido:
+6. Confira se o estilo é válido:
 
    ```bash
    npx -p @maplibre/maplibre-gl-style-spec gl-style-validate public/styles/meu-tema.json
@@ -124,9 +143,9 @@ src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (ro
 
 **Dicas:**
 - Os dados seguem o esquema [OpenMapTiles](https://openmaptiles.org/schema/): camadas
-  `transportation`, `water`, `landuse`, `park`, `building`, `place`...
-- As fontes disponíveis no OpenFreeMap são `Noto Sans Regular`, `Noto Sans Bold` e
-  `Noto Sans Italic`.
+  `transportation`, `water`, `landuse`, `park`, `building`, `place`, `poi`...
+- Para medir as cores de uma referência: `referencias/tools/paletas.py` e `medir.py`;
+  para conferir o tema contra a paleta: `referencias/tools/conferir.py`.
 - Documentação do formato: [MapLibre Style Spec](https://maplibre.org/maplibre-style-spec/).
 
 ## Limitações conhecidas
@@ -148,9 +167,13 @@ src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (ro
 - **GPS em ambiente fechado** salta bastante; a direção só é confiável em movimento.
 - **Sem orientação de faixas** ("use as duas faixas da esquerda").
 - **Só carro.** O perfil do OSRM público usado é o de carro.
-- **Tema Minecraft** esconde os nomes das ruas (a rua aparece no painel de manobra) e
+- **Minecraft 3D** esconde os nomes das ruas (a rua aparece no painel de manobra) e
   desenha prédios em 3D, o que pesa mais em celulares antigos.
-- **Tema San Andreas** também esconde os nomes das ruas, como o radar do jogo.
+- **Hyrule** baixa dados de elevação para as curvas de nível (~200 KB para cada região de
+  ~10 km).
+- **Caixa BAIRRO / RUA (GTA V):** o bairro aparece depois da primeira vez em que o mapa é
+  visto mais de longe (por exemplo, na prévia da rota), porque os tiles só trazem um ponto
+  no meio de cada bairro.
 
 ## Créditos e atribuições
 
@@ -160,11 +183,12 @@ src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (ro
 - **Rotas:** [OSRM](https://project-osrm.org) (servidor público de demonstração).
 - **Busca de endereços:** [Photon](https://photon.komoot.io), da Komoot.
 - **Renderização:** [MapLibre GL JS](https://maplibre.org) (BSD-3-Clause).
-- **Tema Red Dead:** paleta (terra `#DEC29B`, tinta `#40423D`, água `#9E9985`, manchas `#C8B28D`)
-  inspirada no estudo de Lee Martin, ["How I Designed a Red Dead Redemption 2 Inspired Map"](https://dev.to/leemartin/how-i-designed-a-red-dead-redemption-2-inspired-map-in-mapbox-studio-4gkh).
-- **Cores do Minecraft:** a cor de grama vem da tabela de cores do item "mapa" do jogo
-  ([Minecraft Wiki](https://minecraft.wiki/w/Map_item_format)).
-- **Temas Minecraft e San Andreas:** [sickmaps](https://github.com/Cincinnatus101010/sickmaps)
+- **Cores dos temas:** medidas em capturas de tela dos jogos (`referencias/paletas.md`). As
+  capturas não fazem parte do repositório; ícones e marcadores são desenhos próprios.
+- **Curvas de nível (Hyrule):** elevação do [Mapterhorn](https://mapterhorn.com/attribution);
+  isolinhas geradas por [maplibre-contour](https://github.com/onthegomap/maplibre-contour)
+  (BSD-3-Clause).
+- **Tema Minecraft 3D:** [sickmaps](https://github.com/Cincinnatus101010/sickmaps)
   (`@iantroisi/sickmaps`), licença MIT, Copyright (c) 2026 Cincinnatus101010.
   Usamos os estilos, as texturas de bloco, a grade de chunks e o CSS de HUD da biblioteca.
   No app, trocamos o fundo preto por grama, adicionamos pedra nas áreas urbanas, variamos
@@ -173,8 +197,8 @@ src/ui/               busca (+ recentes), painel de manobra, folhas de baixo (ro
 - **Fontes da interface:** Oswald, Rye, IM Fell English, Pixelify Sans, Pirata One e Cinzel,
   via [Fontsource](https://fontsource.org), todas sob a [SIL Open Font License 1.1](https://openfontlicense.org)
   (lista em `public/licenses/fonts-OFL.txt`).
-- **Tema Hyrule:** paleta e ícones desenhados para o app, inspirados no mapa de Zelda:
-  Breath of the Wild; nenhuma arte do jogo é usada.
+- **Tema Hyrule:** paleta medida e ícones desenhados para o app, inspirados no mapa de Zelda:
+  Tears of the Kingdom; nenhuma arte do jogo é usada.
 
 Projeto pessoal de fã, sem fins lucrativos e sem relação com a Rockstar Games, a Mojang, a
 Microsoft ou a Nintendo.

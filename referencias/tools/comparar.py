@@ -22,6 +22,8 @@ REFERENCIA = {
     'minecraft': 'minecraft-mapa-item.png',
     'minecraft-mapa': 'minecraft-mapa-item.png',
 }
+# tema que mudou de id: o "antes" dele está com o nome antigo
+NOME_ANTES = {'san-andreas': 'gta-sa'}
 ALTURA = 900  # altura de cada painel
 
 
@@ -52,12 +54,12 @@ def main() -> None:
     vista = sys.argv[1] if len(sys.argv) > 1 else 'topo'
     destino = RAIZ / 'comparacao'
     destino.mkdir(exist_ok=True)
-    temas = {p.name.rsplit('-', 1)[0] for pasta in ('antes', 'depois') for p in (RAIZ / pasta).glob(f'*-{vista}.png')}
+    temas = {p.name.rsplit('-', 1)[0] for p in (RAIZ / 'depois').glob(f'*-{vista}.png')}
     for tema in sorted(temas):
         ref = REFERENCIA.get(tema)
         paineis = [
             painel(RAIZ / ref, 'Referência') if ref else painel(Path('-'), 'Referência'),
-            painel(RAIZ / 'antes' / f'{tema}-{vista}.png', 'Antes', 420),
+            painel(RAIZ / 'antes' / f'{NOME_ANTES.get(tema, tema)}-{vista}.png', 'Antes', 420),
             painel(RAIZ / 'depois' / f'{tema}-{vista}.png', 'Depois', 420),
         ]
         largura = sum(p.width for p in paineis) + 16 * (len(paineis) + 1)

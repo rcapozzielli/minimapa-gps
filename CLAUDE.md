@@ -21,15 +21,18 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
 
 - Vanilla TypeScript, sem framework. Os módulos não se chamam entre si: reagem ao estado global
   em `src/state.ts` (`setState` / `subscribe`). Para uma funcionalidade nova, siga esse padrão.
-- Temas: `src/map/themes.ts`. Há temas JSON (`public/styles/*.json`) e temas gerados pelo
-  sickmaps (Minecraft, San Andreas). Cores da rota e da UI ficam em `metadata.minimapa` de cada
-  estilo.
-- Skins (a "cara de jogo" da interface): `metadata.minimapa.skin` → classe `skin-<id>` no
-  `<html>` + `src/skins/<id>.css` + SVGs do jogador/destino em `src/skins/index.ts`. Componentes
-  desenham caixas só com as variáveis de forma de `src/styles/base.css`; uma skin redefine essas
-  variáveis em `:root.skin-<id>` (não `.skin-<id>`, que empata com o `:root` e depende da ordem).
-- Fontes de jogo (Fontsource, OFL) só na interface. Os rótulos do mapa usam os `glyphs` da
-  OpenFreeMap: o estilo aceita uma única URL de glyphs, e trocar exigiria hospedar PBFs.
+- Temas: `src/map/themes.ts`. Há temas JSON (`public/styles/*.json`) e um tema gerado pelo
+  sickmaps (Minecraft 3D). Cores da rota e da UI ficam em `metadata.minimapa` de cada estilo.
+  As cores dos mapas vêm de `referencias/paletas.md` (medidas nas capturas dos jogos): não
+  chute cor; o que não aparece na referência fica marcado como derivado.
+- Skins (a "cara de jogo"): `metadata.minimapa.skin` → classe `skin-<id>` no `<html>` + a pasta
+  `src/skins/<id>/` (skin.css, player.svg, pin.svg, poi/*.svg), descoberta por
+  `import.meta.glob`. Componentes desenham caixas só com as variáveis de forma de
+  `src/styles/base.css`; uma skin as redefine em `:root.skin-<id>` (não `.skin-<id>`, que empata
+  com o `:root` e depende da ordem).
+- HUD por tema (`metadata.minimapa.hud` → classes `mostra-<peça>` no `<html>`; `src/ui/hud.ts`).
+- Fontes de jogo (Fontsource, OFL) na interface E nos rótulos: os temas JSON não têm `glyphs`,
+  e o MapLibre desenha os nomes com as fontes da página (modo de fontes locais, GL JS >= 5.11).
 
 ## Armadilhas já resolvidas (não desfaça sem entender)
 
@@ -55,6 +58,20 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
 - **Recálculo de rota:** logo após um `reroute`, `nav` ainda é o da rota antiga (o navegador o
   recalcula no mesmo `setState`, depois). Quem lê `route.steps[nav.stepIndex]` precisa tolerar
   índice inexistente; uma exceção num ouvinte interrompe os seguintes.
+- **Fontes locais nos rótulos:** em `text-font`, só o nome exato da família CSS (`"Oswald"`).
+  O MapLibre usa o nome inteiro como família: `"Oswald SemiBold"` cai numa fonte genérica.
+  Trocar de um tema sem `glyphs` para o Minecraft 3D (que tem) gera um 404 de fonte na
+  OpenFreeMap durante a troca (tiles antigos em processamento). É inofensivo.
+- **Texturas (`patterns.ts`)** são registradas no `style.load` (`registrarTexturas`): só o
+  resolvedor de imagens faltantes não basta, e um `background-pattern` sem imagem não desenha
+  o fundo (a página aparece por trás).
+- **Classes de HUD no `<html>` são `mostra-<peça>`**, não `hud-<peça>`: os elementos já se
+  chamam `hud-<peça>`, e `querySelector('.hud-x')` acharia o `<html>`.
+- **Bairro no HUD:** no zoom de navegação o ponto do bairro (`place`) quase nunca está nos tiles
+  carregados, e `querySourceFeatures` não o acha. O `hud.ts` guarda os bairros vistos em zooms
+  afastados (memória) e usa o mais próximo.
+- **Tema 2D (Minecraft (mapa)):** `map.setMaxPitch(0)` no `enter` (a câmera pede 60°, o MapLibre
+  limita); desfazer no teardown junto com o `setPixelRatio`.
 - **Base path:** o `vite.config.ts` lê `BASE_PATH` (o workflow usa `/minimapa-gps/`). Caminhos
   de arquivos em `public/` no código devem usar `import.meta.env.BASE_URL`.
 
@@ -77,13 +94,23 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
 ## Testar
 
 - `npm run dev` → `https://localhost:5173` (certificado autoassinado; aparece também na rede local).
-- `?sim=1`: modo simulação (carro falso segue a rota; botão "Desviar" força recálculo).
-  No console, `minimapa.map` e `minimapa.getState()`.
+- `?sim=1`: modo simulação ("DEMO DRIVE": carro falso segue a rota; botão "Desviar" força
+  recálculo). No console, `minimapa.map`, `minimapa.getState()` e `minimapa.setState()`.
+  **Em scripts, use esses, nunca `import('/src/state.ts')`:** depois de uma edição com o servidor
+  rodando, o Vite serve os módulos com `?t=...`, e o import sem sufixo carrega OUTRA cópia do
+  estado (e de `themes.ts`), separada do app. Troque de tema clicando no cartão do seletor
+  (`.theme-card[data-theme=...]`), não chamando `setTheme` de um import.
+- **Testes preferidos: Playwright** (skill webapp-testing), em `referencias/tools/`:
+  `prints.py` (prints por tema), `conferir.py` (cores do print × paleta, em ΔE), `validar.py`
+  (DEMO DRIVE: rota, recálculo, troca de tema; registra URLs com erro), `desempenho.py`.
+  Rodam contra o `npm run dev` (ignoram o certificado). Verifique por números primeiro; imagem
+  só para uma olhada rápida. O tempo de quadro no Chromium sem janela (SwiftShader) varia muito
+  entre rodadas: não compare números medidos em momentos diferentes.
 - `?pos=lat,lng`: posição fixa.
 - Service worker só no build: `npm run build` + `npm run preview`.
 - Validar um tema JSON:
   `npx -p @maplibre/maplibre-gl-style-spec gl-style-validate public/styles/<tema>.json`.
-- **Testes no Chrome via Claude in Chrome:** a aba controlada fica oculta, e o Chrome pausa o
+- **Testes no Chrome via Claude in Chrome** (alternativa ao Playwright): a aba controlada fica oculta, e o Chrome pausa o
   `requestAnimationFrame`. O MapLibre só carrega estilos novos num quadro de animação, então
   trocas de tema parecem "travar" até algo forçar renderização (um screenshot resolve).
   Medir FPS ali não funciona. As coordenadas dos screenshots às vezes não batem com a página:
