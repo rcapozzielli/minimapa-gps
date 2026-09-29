@@ -1,0 +1,97 @@
+/* Variáveis da interface. Os temas (fase 5) trocam estes valores. */
+:root {
+  --ui-bg: rgba(20, 22, 24, 0.88);
+  --ui-fg: #f2f2f2;
+  --ui-accent: #c040d8;
+  --player-fill: #ffffff;
+  --player-stroke: #1b1d1f;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1b1d1f;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#map {
+  position: fixed;
+  inset: 0;
+}
+
+/* Camada de UI por cima do mapa; só os próprios controles recebem toques. */
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#ui > * {
+  pointer-events: auto;
+}
+
+.player {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* Botões grandes na parte de baixo: alcançáveis com o polegar. */
+.fab {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--ui-bg);
+  color: var(--ui-fg);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+.fab:active {
+  transform: scale(0.96);
+}
+.fab[hidden] {
+  display: none;
+}
+
+.fab-recenter {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(24px + var(--safe-bottom));
+}
+.fab-recenter:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.toast {
+  position: absolute;
+  left: calc(16px + var(--safe-left));
+  right: calc(16px + var(--safe-right));
+  top: calc(16px + var(--safe-top));
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #b3261e;
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+}
+
+/* Atribuição do OSM acima da safe area inferior. */
+.maplibregl-ctrl-bottom-right {
+  margin-bottom: var(--safe-bottom);
+  margin-right: var(--safe-right);
+}
