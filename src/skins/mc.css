@@ -39,7 +39,8 @@
   border-left: var(--ui-border);
 }
 .skin-mc .maneuver-dist,
-.skin-mc .trip-time {
+.skin-mc .rp-time,
+.skin-mc .nav-bar-eta {
   font-weight: 700;
 }
 /* Ícones de manobra "de pixel": pontas e dobras quadradas, sem suavização. */
@@ -82,7 +83,6 @@
 
 /* Botão principal: botão verde com o mesmo bevel. */
 .skin-mc .btn-primary,
-.skin-mc .trip-start,
 .skin-mc .update button {
   border: 2px solid #000;
   border-radius: 0;
@@ -93,8 +93,7 @@
   clip-path: var(--mc-dent);
 }
 /* Botão secundário: "slot" afundado do inventário (bevel invertido). */
-.skin-mc .btn-secondary,
-.skin-mc .trip-cancel {
+.skin-mc .btn-secondary {
   border-radius: 0;
   background: #8b8b8b;
   color: #1e1e1e;
@@ -102,7 +101,7 @@
 }
 .skin-mc .btn-primary:active,
 .skin-mc .btn-secondary:active,
-.skin-mc .trip-start:active {
+.skin-mc .btn-primary:active {
   transform: none;
   filter: brightness(1.12);
 }

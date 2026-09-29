@@ -34,7 +34,7 @@
 .skin-rdr .panel,
 .skin-rdr .search-field,
 .skin-rdr .maneuver,
-.skin-rdr .trip,
+.skin-rdr .nav-bar,
 .skin-rdr .update,
 .skin-rdr .fab {
   outline: 1px solid rgba(74, 46, 26, 0.55);
@@ -43,7 +43,8 @@
 
 /* Títulos e números em Rye (peso único). */
 .skin-rdr .maneuver-dist,
-.skin-rdr .trip-time,
+.skin-rdr .rp-time,
+.skin-rdr .nav-bar-eta,
 .skin-rdr .sheet-title {
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -57,7 +58,8 @@
   letter-spacing: 0.01em;
 }
 .skin-rdr .maneuver-action,
-.skin-rdr .trip-sub {
+.skin-rdr .rp-sub,
+.skin-rdr .nav-bar-sub {
   font-size: 16px;
   opacity: 0.85;
 }
@@ -95,7 +97,6 @@
 
 /* Botão principal: "carimbo" vermelho de tinta, com borda escura. */
 .skin-rdr .btn-primary,
-.skin-rdr .trip-start,
 .skin-rdr .update button {
   border: 2px solid #2b1a12;
   border-radius: var(--ui-radius-btn);
@@ -104,8 +105,7 @@
   letter-spacing: 0.05em;
   box-shadow: inset 0 0 8px rgba(43, 26, 18, 0.45);
 }
-.skin-rdr .btn-secondary,
-.skin-rdr .trip-cancel {
+.skin-rdr .btn-secondary {
   border: 1px solid rgba(74, 46, 26, 0.5);
   border-radius: var(--ui-radius-btn);
   background: rgba(120, 76, 30, 0.12);
