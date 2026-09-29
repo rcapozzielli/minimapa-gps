@@ -26,6 +26,8 @@ export interface ThemeMeta {
   label: string;
   route: { color: string; casing: string; glow: string };
   ui: Record<string, string>;
+  /** Classe CSS extra no contêiner do mapa enquanto o tema estiver ativo (ex.: papel envelhecido). */
+  containerClass?: string;
 }
 
 interface ThemeInfo {
@@ -54,6 +56,7 @@ const MINECRAFT_META: ThemeMeta = {
 /** Para adicionar um tema: crie o JSON em public/styles/ (ou use um tema do sickmaps) e registre aqui. */
 export const THEMES: ThemeInfo[] = [
   jsonTheme('los-santos', 'Los Santos', 'los-santos.json'),
+  jsonTheme('red-dead', 'Red Dead', 'red-dead.json'),
   sickmapsTheme('minecraft', MINECRAFT_META, minecraftEnter),
   // Outros temas do sickmaps entram numa linha, ex.:
   // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }),
@@ -98,7 +101,7 @@ function sickmapsTheme(
     label: meta.label,
     load: cached(async () => {
       const style = (await loadGameMapStyle(theme)) as maplibregl.StyleSpecification;
-      flattenBuildings(style);
+      if (theme === 'minecraft') tuneMinecraft(style);
       return { ...style, metadata: { ...(style.metadata as object), minimapa: meta } };
     }),
     enter: (map) => {
@@ -115,19 +118,56 @@ function sickmapsTheme(
 }
 
 /**
- * O Minecraft do sickmaps levanta os prédios em 3D com a altura real. Numa cidade
- * como São Paulo, com a câmera inclinada, eles escondem a rota. Mantemos os blocos,
- * mas baixos: 30% da altura, no máximo 25 m.
+ * Nossos ajustes no Minecraft do sickmaps, inspirados no item "mapa" do jogo
+ * (onde o mundo é desenhado com as cores dos blocos e o gramado domina):
+ *  - O fundo do sickmaps é "bedrock" (quase preto) e só áreas residenciais e de
+ *    vegetação ganham cor; o resto da cidade (comércio, indústria, vãos entre
+ *    quadras) ficava preto. Agora o fundo é grama (com textura, ver minecraftEnter).
+ *  - Bairros residenciais viram grama também (em vez de grandes manchas de terra).
+ *  - Áreas comerciais/industriais ganham uma camada de pedra.
+ *  - Prédios: materiais conforme a altura (tábuas, tijolos, tijolos de pedra,
+ *    quartzo) e mais baixos (30%, máx. 25 m) para não esconderem a rota.
  */
-function flattenBuildings(style: maplibregl.StyleSpecification): void {
+const MC_MAP = {
+  grass: '#7fb238', // cor GRASS do item "mapa" do Minecraft
+  stone: '#8f8f8f',
+  planks: '#a58a52',
+  bricks: '#96503f',
+  stoneBricks: '#7a7a7a',
+  quartz: '#e9e4d8',
+};
+
+function tuneMinecraft(style: maplibregl.StyleSpecification): void {
   for (const layer of style.layers) {
-    if (layer.type !== 'fill-extrusion' || !layer.paint) continue;
-    const { paint } = layer;
-    const h = paint['fill-extrusion-height'];
-    const b = paint['fill-extrusion-base'];
-    if (h !== undefined) paint['fill-extrusion-height'] = ['min', 25, ['*', 0.3, h]] as never;
-    if (b !== undefined) paint['fill-extrusion-base'] = ['min', 25, ['*', 0.3, b]] as never;
+    if (layer.type === 'background') {
+      layer.paint = { ...layer.paint, 'background-color': MC_MAP.grass };
+    }
+    if (layer.id === 'landuse_residential') {
+      layer.layout = { ...layer.layout, visibility: 'none' };
+    }
+    if (layer.type === 'fill-extrusion' && layer.paint) {
+      const { paint } = layer;
+      const h = paint['fill-extrusion-height'];
+      const b = paint['fill-extrusion-base'];
+      if (h !== undefined) paint['fill-extrusion-height'] = ['min', 25, ['*', 0.3, h]] as never;
+      if (b !== undefined) paint['fill-extrusion-base'] = ['min', 25, ['*', 0.3, b]] as never;
+      paint['fill-extrusion-color'] = [
+        'step', ['coalesce', ['get', 'render_height'], 8],
+        MC_MAP.planks, 6, MC_MAP.bricks, 15, MC_MAP.stoneBricks, 40, MC_MAP.quartz,
+      ] as never;
+    }
   }
+
+  // Pedra nas áreas comerciais/industriais, logo abaixo da água.
+  const waterIdx = style.layers.findIndex((l) => l.id === 'water');
+  style.layers.splice(Math.max(0, waterIdx), 0, {
+    id: 'mc_urban_stone',
+    type: 'fill',
+    source: 'openmaptiles',
+    'source-layer': 'landuse',
+    filter: ['match', ['get', 'class'], ['commercial', 'industrial', 'retail', 'railway'], true, false],
+    paint: { 'fill-color': MC_MAP.stone, 'fill-antialias': false },
+  });
 }
 
 /** Guarda o estilo pronto: trocar de volta para um tema não baixa nada de novo. */
@@ -145,36 +185,40 @@ function cached(fn: () => Promise<maplibregl.StyleSpecification>) {
 
 /**
  * Efeitos do Minecraft: pixelRatio "pixelado" + texturas de bloco e grade de chunks.
- * installMinecraftEnhancements espera o estilo estar 100% carregado; se não estiver,
- * ele aguarda o evento 'load' do mapa, que só dispara UMA vez na vida do mapa (e
- * nunca depois de um setStyle). Por isso só chamamos quando isStyleLoaded() é true.
+ *
+ * installMinecraftEnhancements só instala na hora se map.isStyleLoaded() for true,
+ * o que exige TODOS os tiles da tela carregados. Senão, espera o evento 'load' do
+ * mapa, que só dispara UMA vez na vida do mapa (nunca depois de um setStyle): as
+ * texturas não apareceriam nunca. Esperar "tudo carregado" também não serve: com a
+ * câmera se mexendo na navegação e internet lenta, esse momento pode não chegar.
+ * O que a instalação precisa de fato (addImage, addLayer) já funciona no
+ * 'style.load'. Então, só durante a chamada, dizemos ao sickmaps que está pronto.
  */
 function minecraftEnter(map: maplibregl.Map): () => void {
   map.setPixelRatio(getMinecraftPixelRatio());
   let undoEnhancements: (() => void) | null = null;
 
-  const tryInstall = () => {
-    if (!map.isStyleLoaded()) return;
-    stopWaiting();
-    undoEnhancements = installMinecraftEnhancements(map);
-    // A grade de chunks é adicionada por cima de tudo; colocamos abaixo da rota.
+  const install = () => {
+    const shadow = map as unknown as { isStyleLoaded: () => boolean };
+    shadow.isStyleLoaded = () => true; // propriedade própria "esconde" o método...
+    try {
+      undoEnhancements = installMinecraftEnhancements(map);
+    } finally {
+      delete (shadow as Partial<typeof shadow>).isStyleLoaded; // ...e ao apagá-la, o original volta
+    }
+    // Texturas de bloco (registradas pelo sickmaps) no nosso fundo de grama e na pedra urbana.
+    map.setPaintProperty('background', 'background-pattern', 'mc_grass');
+    if (map.getLayer('mc_urban_stone')) map.setPaintProperty('mc_urban_stone', 'fill-pattern', 'mc_stone');
+    // A grade de chunks é adicionada por cima de tudo; colocamos abaixo da rota
+    // (que o routeLayer.ts já redesenhou neste mesmo 'style.load', num ouvinte anterior).
     if (map.getLayer('sickmaps-mc-chunk-lines') && map.getLayer('route-glow')) {
       map.moveLayer('sickmaps-mc-chunk-lines', 'route-glow');
     }
   };
-  const startWaiting = () => {
-    map.on('render', tryInstall);
-    map.on('idle', tryInstall);
-  };
-  const stopWaiting = () => {
-    map.off('style.load', startWaiting);
-    map.off('render', tryInstall);
-    map.off('idle', tryInstall);
-  };
-  map.once('style.load', startWaiting);
+  map.once('style.load', install);
 
   return () => {
-    stopWaiting();
+    map.off('style.load', install); // se sair antes de o estilo carregar
     undoEnhancements?.(); // remove o listener de 'moveend' e a grade
     // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
     map.setPixelRatio(null as unknown as number);
@@ -248,7 +292,19 @@ export async function setTheme(map: maplibregl.Map, id: string): Promise<void> {
 
   current?.teardown();
   map.setStyle(style, { diff: false });
-  current = { id: theme.id, teardown: theme.enter?.(map) ?? (() => {}) };
+
+  // Classe CSS opcional do tema (definida no próprio JSON, em metadata.minimapa.containerClass).
+  const container = map.getContainer();
+  const cls = (style.metadata as { minimapa?: ThemeMeta } | undefined)?.minimapa?.containerClass;
+  if (cls) container.classList.add(cls);
+  const undoEnter = theme.enter?.(map);
+  current = {
+    id: theme.id,
+    teardown: () => {
+      undoEnter?.();
+      if (cls) container.classList.remove(cls);
+    },
+  };
   try {
     localStorage.setItem(STORAGE_KEY, theme.id);
   } catch {

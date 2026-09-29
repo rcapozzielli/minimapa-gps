@@ -22,8 +22,9 @@ O botão de paleta (canto inferior) alterna entre os temas:
 
 | Tema | Origem |
 |---|---|
-| Los Santos | `public/styles/los-santos.json` (estilo próprio) |
-| Minecraft | gerado pela biblioteca [sickmaps](https://github.com/Cincinnatus101010/sickmaps) |
+| Los Santos | `public/styles/los-santos.json` (estilo próprio, minimapa do GTA V) |
+| Red Dead | `public/styles/red-dead.json` (estilo próprio, mapa de pergaminho do RDR2) |
+| Minecraft | gerado pela biblioteca [sickmaps](https://github.com/Cincinnatus101010/sickmaps), com ajustes nossos (grama no lugar do fundo preto, pedra nas áreas urbanas, prédios por material) |
 
 Os temas são registrados em `src/map/themes.ts`.
 
@@ -35,6 +36,11 @@ Os temas são registrados em `src/map/themes.ts`.
 - **Rotas:** [OSRM](https://project-osrm.org) (servidor público de demonstração).
 - **Busca de endereços:** [Photon](https://photon.komoot.io), da Komoot.
 - **Renderização:** [MapLibre GL JS](https://maplibre.org) (BSD-3-Clause).
+- **Tema Red Dead:** paleta (terra `#DEC29B`, tinta `#40423D`, água `#9E9985`, manchas `#C8B28D`)
+  inspirada no estudo de Lee Martin, ["How I Designed a Red Dead Redemption 2 Inspired Map"](https://dev.to/leemartin/how-i-designed-a-red-dead-redemption-2-inspired-map-in-mapbox-studio-4gkh).
+  Projeto de fã, sem relação com a Rockstar Games.
+- **Cores do Minecraft:** a cor de grama vem da tabela de cores do item "mapa" do jogo
+  ([Minecraft Wiki](https://minecraft.wiki/w/Map_item_format)).
 - **Tema Minecraft:** [sickmaps](https://github.com/Cincinnatus101010/sickmaps)
   (`@iantroisi/sickmaps`), licença MIT, Copyright (c) 2026 Cincinnatus101010.
   Usamos os estilos, as texturas de bloco, a grade de chunks e o CSS de HUD da biblioteca.
