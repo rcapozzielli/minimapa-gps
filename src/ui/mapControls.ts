@@ -1,6 +1,7 @@
 // Coluna de botões do mapa, à direita, logo abaixo da busca (estilo Google Maps):
 //  - "Camadas": abre a folha de temas ('themes');
 //  - bússola: só aparece com o mapa girado fora do modo seguir; toque = norte para cima;
+//  - pontos de interesse liga/desliga (ícones de restaurantes, postos...; src/map/poiLayer.ts);
 //  - voz liga/desliga: só durante a navegação.
 import type * as maplibregl from 'maplibre-gl';
 import { getState, setState, subscribe } from '../state';
@@ -12,6 +13,14 @@ const LAYERS_ICON = `
   <path d="M12 3 2 8.5 12 14l10-5.5z" fill="currentColor"/>
   <path d="M4.2 12.3 2 13.5 12 19l10-5.5-2.2-1.2L12 16.6z" fill="currentColor" opacity=".7"/>
 </svg>`;
+
+const POI_ICON = `
+<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+  <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z" fill="currentColor"/>
+  <path d="M9 7v3.5a1.2 1.2 0 0 0 2.4 0V7M10.2 7v6M14 7c-1 1-1 3 0 4v2" fill="none"
+        stroke="var(--ui-panel-bg, #000)" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
+const CHAVE_POIS = 'minimapa:pois';
 
 /** Agulha: metade norte vermelha (convenção de bússola), metade sul na cor do texto. */
 const COMPASS_ICON = `
@@ -53,7 +62,17 @@ export function createMapControls(root: HTMLElement, map: maplibregl.Map): void 
   };
   renderMute(getState().muted);
 
-  col.append(layers, compass, mute);
+  const pois = document.createElement('button');
+  pois.className = 'fab fab-round';
+  pois.innerHTML = POI_ICON;
+  pois.addEventListener('click', () => setState({ poisVisible: !getState().poisVisible }));
+  const renderPois = (on: boolean) => {
+    pois.setAttribute('aria-label', on ? 'Esconder pontos de interesse' : 'Mostrar pontos de interesse');
+    pois.setAttribute('aria-pressed', String(on));
+    pois.classList.toggle('is-off', !on);
+  };
+
+  col.append(layers, pois, compass, mute);
 
   // A agulha gira ao contrário do mapa, para apontar sempre para o norte de verdade.
   const updateCompass = () => {
@@ -68,5 +87,22 @@ export function createMapControls(root: HTMLElement, map: maplibregl.Map): void 
     if ('following' in changed) updateCompass();
     if ('navigating' in changed) mute.hidden = !s.navigating;
     if ('muted' in changed) renderMute(s.muted);
+    if ('poisVisible' in changed) {
+      renderPois(s.poisVisible);
+      try {
+        localStorage.setItem(CHAVE_POIS, s.poisVisible ? '1' : '0');
+      } catch {
+        /* sem armazenamento: vale só nesta sessão */
+      }
+    }
   });
+
+  // Preferência salva dos pontos de interesse (padrão: ligados).
+  let salvo: string | null = null;
+  try {
+    salvo = localStorage.getItem(CHAVE_POIS);
+  } catch {
+    /* sem armazenamento */
+  }
+  setState({ poisVisible: salvo !== '0' });
 }

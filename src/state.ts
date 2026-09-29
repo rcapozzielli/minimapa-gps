@@ -41,6 +41,8 @@ export interface AppState {
   sheet: SheetId | null;
   /** Cor escolhida para a seta do jogador (salva no aparelho por src/ui/themePicker.ts). */
   corJogador: CorJogador;
+  /** Ícones de pontos de interesse ligados? (salvo no aparelho por src/ui/mapControls.ts) */
+  poisVisible: boolean;
   routeLoading: boolean;
   routeError: string | null;
   /** Navegação passo a passo ligada? (depois de tocar em "Iniciar") */
@@ -71,6 +73,7 @@ const state: AppState = {
   routeIndex: 0,
   sheet: null,
   corJogador: 'verde',
+  poisVisible: true,
   routeLoading: false,
   routeError: null,
   navigating: false,

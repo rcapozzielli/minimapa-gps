@@ -144,3 +144,14 @@
   letter-spacing: 0.03em;
   box-shadow: none;
 }
+
+/* Balão dos pontos de interesse = legenda do mapa de pausa: caixa escura translúcida
+   (#0c0c0a, medida), texto branco, ícone à direita. */
+.skin-gta .popup-poi .maplibregl-popup-content {
+  background: rgba(12, 12, 10, 0.86);
+  color: #ffffff;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--ui-font-display);
+  font-size: 16px;
+}

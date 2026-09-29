@@ -5,6 +5,9 @@
 //   player.svg   seta do jogador, apontando para CIMA (norte); o centro é a sua posição
 //   pin.svg      marcador do destino; `data-anchor="center"` no <svg> se o centro fica sobre o
 //                local (blip), senão a base fica (pino)
+//   poi/*.svg    ícones de pontos de interesse, um por categoria (restaurante, fast-food, bar,
+//                cafe, loja, posto, farmacia, hotel); ver src/map/poiLayer.ts
+//                (scripts/gerar-icones-poi.py gera os das skins atuais)
 // Qualquer arquivo que faltar vem da pasta `padrao/`. Um tema escolhe a skin em
 // metadata.minimapa.skin; themes.ts põe a classe `skin-<id>` no <html>.
 //
@@ -19,6 +22,8 @@ import.meta.glob('./*/skin.css', { eager: true });
 
 const players = import.meta.glob<string>('./*/player.svg', { query: '?raw', import: 'default', eager: true });
 const pins = import.meta.glob<string>('./*/pin.svg', { query: '?raw', import: 'default', eager: true });
+// Ícones de pontos de interesse: src/skins/<id>/poi/<categoria>.svg (ver src/map/poiLayer.ts).
+const pois = import.meta.glob<string>('./*/poi/*.svg', { query: '?raw', import: 'default', eager: true });
 
 export interface Skin {
   /** Seta do jogador. Aponta para CIMA (norte); o app gira conforme a direção. Centro = sua posição. */
@@ -46,6 +51,18 @@ function montar(id: string): Skin {
     pin,
     pinAnchor: /data-anchor="center"/.test(pin) ? 'center' : 'bottom',
   };
+}
+
+/** skin -> categoria -> SVG ('./gta/poi/bar.svg' -> POIS.gta.bar). */
+const POIS: Record<string, Record<string, string>> = {};
+for (const [caminho, svg] of Object.entries(pois)) {
+  const [, skin, , arquivo] = caminho.split('/');
+  (POIS[skin] ??= {})[arquivo.replace(/\.svg$/, '')] = svg;
+}
+
+/** Ícones de POI da skin (categoria -> SVG), ou null se a skin não tiver a pasta poi/. */
+export function getPoiIcons(id: string | undefined): Record<string, string> | null {
+  return (id && POIS[id]) || null;
 }
 
 const cache = new Map<string, Skin>();

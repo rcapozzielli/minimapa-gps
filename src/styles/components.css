@@ -864,3 +864,33 @@ body[data-sheet='arrived'] .bottom-stack {
   /* abaixo do painel de manobra + chip "Depois" (que termina em ~170 px) */
   top: calc(var(--gutter) + var(--safe-top) + 173px);
 }
+
+/* ---------- Balão dos pontos de interesse (src/map/poiLayer.ts) ----------
+   Caixa com as variáveis do tema; nome à esquerda, ícone da categoria à direita. */
+.popup-poi .maplibregl-popup-content {
+  padding: 8px 10px;
+  background: var(--ui-panel-bg);
+  color: var(--ui-fg);
+  border: var(--ui-border);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+  font-family: var(--ui-font);
+  font-size: 15px;
+}
+.popup-poi .maplibregl-popup-tip {
+  display: none;
+}
+.popup-poi-conteudo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.popup-poi-icone svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+/* Botão de pontos de interesse desligado: fica apagado. */
+.fab.is-off svg {
+  opacity: 0.4;
+}

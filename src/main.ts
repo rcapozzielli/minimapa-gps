@@ -9,6 +9,7 @@ import { getSavedThemeId, setTheme } from './map/themes';
 import { createPlayer } from './map/player';
 import { setupCamera, showRouteOverview } from './map/camera';
 import { setupRouteLayer } from './map/routeLayer';
+import { setupPoiLayer } from './map/poiLayer';
 import { onLongPress } from './map/longPress';
 import { startLocation } from './geo/location';
 import { startRouting } from './nav/routing';
@@ -35,6 +36,7 @@ const map = createMap('map');
 createPlayer(map);
 setupCamera(map);
 setupRouteLayer(map);
+setupPoiLayer(map); // depois da rota: os ícones ficam abaixo dela
 
 // Pilha do topo: barra de busca (parado) ou painel de manobra (navegando) e, abaixo,
 // a coluna de botões do mapa à direita (Camadas, bússola, voz).
