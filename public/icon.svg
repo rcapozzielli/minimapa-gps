@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícone-fonte do app: minimapa com ruas, rota e a seta do jogador.
+       Os PNGs (192, 512, maskable, apple-touch) são gerados a partir dele: npm run icons -->
+  <rect width="512" height="512" rx="96" fill="#1b1d1f"/>
+  <g stroke="#8e9397" stroke-width="14" stroke-linecap="round" fill="none">
+    <path d="M40 150 L472 110"/>
+    <path d="M60 360 L470 400"/>
+    <path d="M150 40 L120 472"/>
+    <path d="M370 40 L400 472"/>
+  </g>
+  <path d="M40 260 C160 250 250 300 330 220 S430 150 472 170" stroke="#cdd0d2" stroke-width="22" stroke-linecap="round" fill="none"/>
+  <path d="M256 330 L256 250 L380 150" stroke="#3a0d45" stroke-width="44" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M256 330 L256 250 L380 150" stroke="#c93fe0" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="380" cy="150" r="26" fill="#c93fe0" stroke="#fff" stroke-width="8"/>
+  <path d="M256 262 L310 392 L256 360 L202 392 Z" fill="#ffffff" stroke="#1b1d1f" stroke-width="12" stroke-linejoin="round"/>
+</svg>

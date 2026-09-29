@@ -13,6 +13,17 @@ npm install
 npm run dev        # https://localhost:5173 (certificado autoassinado)
 ```
 
+O service worker (PWA) só existe no build. Para testar a instalação:
+
+```bash
+npm run build
+npm run preview    # https://<IP-do-PC>:4173 no celular
+```
+
+- **Android (Chrome):** menu ⋮ → "Instalar app" ou "Adicionar à tela inicial".
+- **iPhone (Safari):** botão Compartilhar → "Adicionar à Tela de Início".
+- Ícones: gerados de `public/icon.svg` com `npm run icons`.
+
 - `?sim=1`: modo simulação. Um carro falso percorre a rota; tem o botão "Desviar" para testar o recálculo.
 - `?pos=lat,lng`: fixa uma posição falsa (ex.: `?pos=-23.5614,-46.6559`).
 

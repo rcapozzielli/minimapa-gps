@@ -11,11 +11,13 @@ import { startLocation } from './geo/location';
 import { startRouting } from './nav/routing';
 import { setupNavigator } from './nav/navigator';
 import { initVoice } from './nav/voice';
+import { setupWakeLock } from './nav/wakeLock';
 import { isSimulation, startSimulator } from './nav/simulator';
 import { createButtons, toast } from './ui/buttons';
 import { createSearchBar } from './ui/searchBar';
 import { createManeuverPanel } from './ui/maneuverPanel';
 import { createTripInfo } from './ui/tripInfo';
+import { setupUpdatePrompt } from './ui/updatePrompt';
 
 const ui = document.getElementById('ui')!;
 const map = createMap('map');
@@ -46,6 +48,8 @@ subscribe((s, changed) => {
 });
 
 initVoice();
+setupWakeLock();
+setupUpdatePrompt(ui);
 onLongPress(map, (lngLat) => {
   if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
 });

@@ -335,6 +335,37 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* Aviso de versão nova do app (PWA), logo abaixo da barra de busca. */
+.update {
+  position: absolute;
+  top: calc(80px + var(--safe-top));
+  left: calc(var(--gutter) + var(--safe-left));
+  right: calc(var(--gutter) + var(--safe-right));
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 14px;
+  background: var(--ui-bg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  font-size: 15px;
+}
+.update button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ui-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 /* ---------- Tema Red Dead: papel envelhecido ----------
    Camada estática por cima do mapa (não recebe toques): bordas "queimadas" e um
    leve granulado de papel. Sem mix-blend-mode, que custaria caro a cada quadro. */
