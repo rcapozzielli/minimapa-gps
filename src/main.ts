@@ -18,6 +18,7 @@ import { setupWakeLock } from './nav/wakeLock';
 import { isSimulation, startSimulator } from './nav/simulator';
 import { createButtons, toast } from './ui/buttons';
 import { createSearchBar } from './ui/searchBar';
+import { addRecent } from './ui/recents';
 import { createManeuverPanel } from './ui/maneuverPanel';
 import { createMapControls } from './ui/mapControls';
 import { createSpeedometer } from './ui/speedometer';
@@ -66,7 +67,12 @@ subscribe((s, changed) => {
 initVoice();
 setupWakeLock();
 onLongPress(map, (lngLat) => {
-  if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
+  if (getState().navigating) return;
+  const label = 'Ponto marcado no mapa';
+  // Guarda nos recentes com as coordenadas como subtítulo (para distinguir os pontos).
+  const subtitle = `${lngLat[1].toFixed(5)}, ${lngLat[0].toFixed(5)}`;
+  addRecent({ lngLat, label, subtitle });
+  setState({ destination: { lngLat, label } });
 });
 // Rotas prontas: enquadra todas as opções (a escolhida e as alternativas) acima da folha.
 startRouting((routes) =>

@@ -1,10 +1,18 @@
 // Barra de busca no topo com autocomplete do Photon.
 // Debounce: só busca depois de 350 ms sem digitar e com pelo menos 3 letras.
+// Com o campo vazio, ao focar, mostra os destinos recentes (src/ui/recents.ts).
 import { setState, subscribe, type LngLat } from '../state';
 import { searchPlaces, type Place } from '../services/photon';
+import { addRecent, loadRecents, type Recent } from './recents';
 
 const DEBOUNCE_MS = 350;
 const MIN_CHARS = 3;
+
+const CLOCK_ICON = `
+<svg class="search-recent-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+  <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
 
 /** `getBias` diz perto de onde priorizar resultados (sua posição, ou o centro do mapa). */
 export function createSearchBar(root: HTMLElement, getBias: () => LngLat): void {
@@ -34,35 +42,63 @@ export function createSearchBar(root: HTMLElement, getBias: () => LngLat): void 
     list.hidden = false;
   };
 
+  /** Item da lista: título + subtítulo (+ ícone opcional). Dados externos só via textContent. */
+  const item = (title: string, subtitle: string | undefined, onChoose: () => void, icon = '') => {
+    const li = document.createElement('li');
+    li.setAttribute('role', 'option');
+    li.innerHTML = icon
+      ? `${icon}<div class="search-item-text"><strong></strong><span></span></div>`
+      : `<strong></strong><span></span>`;
+    if (icon) li.classList.add('search-recent');
+    // textContent (e não innerHTML) para os dados externos: evita injeção de HTML.
+    li.querySelector('strong')!.textContent = title;
+    const sub = li.querySelector('span')!;
+    sub.textContent = subtitle ?? '';
+    sub.hidden = !subtitle;
+    li.addEventListener('click', onChoose);
+    return li;
+  };
+
   const render = () => {
-    list.replaceChildren(
-      ...results.map((p, i) => {
-        const li = document.createElement('li');
-        li.setAttribute('role', 'option');
-        li.innerHTML = `<strong></strong><span></span>`;
-        // textContent (e não innerHTML) para os dados externos: evita injeção de HTML.
-        li.querySelector('strong')!.textContent = p.title;
-        li.querySelector('span')!.textContent = p.subtitle;
-        li.addEventListener('click', () => choose(i));
-        return li;
-      }),
-    );
+    list.replaceChildren(...results.map((p, i) => item(p.title, p.subtitle, () => choose(i))));
     list.hidden = results.length === 0;
     if (results.length === 0) showMessage('Nada encontrado.');
   };
 
+  /** Lista de recentes (se houver). */
+  const showRecents = () => {
+    const recents = loadRecents();
+    if (!recents.length) {
+      list.hidden = true;
+      return;
+    }
+    const heading = document.createElement('li');
+    heading.className = 'search-heading';
+    heading.setAttribute('role', 'presentation');
+    heading.textContent = 'Recentes';
+    list.replaceChildren(heading, ...recents.map((r) => item(r.label, r.subtitle, () => go(r), CLOCK_ICON)));
+    list.hidden = false;
+  };
+
+  /** Define o destino e o guarda nos recentes. */
+  const go = (r: Recent) => {
+    input.blur(); // fecha o teclado do celular
+    addRecent(r);
+    setState({ destination: { lngLat: r.lngLat, label: r.label } });
+  };
+
   const choose = (i: number) => {
     const place = results[i];
-    if (!place) return;
-    input.blur(); // fecha o teclado do celular
-    setState({ destination: { lngLat: place.lngLat, label: place.title } });
+    if (place) go({ lngLat: place.lngLat, label: place.title, subtitle: place.subtitle || undefined });
   };
 
   const runSearch = async () => {
     const q = input.value.trim();
     if (q.length < MIN_CHARS) return;
     try {
-      results = await searchPlaces(q, getBias());
+      const found = await searchPlaces(q, getBias());
+      if (input.value.trim() !== q) return; // o texto mudou enquanto esperávamos
+      results = found;
       render();
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
@@ -73,7 +109,13 @@ export function createSearchBar(root: HTMLElement, getBias: () => LngLat): void 
   input.addEventListener('input', () => {
     clearTimeout(timer);
     clear.hidden = input.value === '';
-    if (input.value.trim().length < MIN_CHARS) {
+    const q = input.value.trim();
+    if (q === '') {
+      results = [];
+      showRecents();
+      return;
+    }
+    if (q.length < MIN_CHARS) {
       list.hidden = true;
       return;
     }
@@ -85,7 +127,9 @@ export function createSearchBar(root: HTMLElement, getBias: () => LngLat): void 
   });
 
   input.addEventListener('focus', () => {
-    if (results.length && input.value.trim().length >= MIN_CHARS) list.hidden = false;
+    const q = input.value.trim();
+    if (q === '') showRecents();
+    else if (results.length && q.length >= MIN_CHARS) list.hidden = false;
   });
 
   clear.addEventListener('click', () => {

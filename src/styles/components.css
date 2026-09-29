@@ -104,7 +104,7 @@
   border-top: 1px solid var(--ui-divider);
 }
 .search-results li:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .search-results strong {
   font-size: 16px;
@@ -116,6 +116,42 @@
 .search-results .search-msg {
   opacity: 0.7;
   cursor: default;
+}
+/* Destinos recentes: título da seção + itens com ícone de relógio. */
+.search-results .search-heading {
+  min-height: 0;
+  padding: 8px 16px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  cursor: default;
+}
+.search-results .search-heading + li {
+  border-top: 0;
+}
+.search-results li.search-recent {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+}
+.search-recent-icon {
+  flex: none;
+  opacity: 0.7;
+}
+.search-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.search-item-text strong,
+.search-item-text span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------- Painel de manobra (topo, durante a navegação) ---------- */
