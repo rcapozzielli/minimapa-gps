@@ -4,7 +4,7 @@ import { subscribe } from '../state';
 
 const ARROW_SVG = `
 <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-  <path d="M20 3 L34 35 L20 27 L6 35 Z" fill="var(--player-fill)" stroke="var(--player-stroke)"
+  <path d="M20 3 L34 35 L20 27 L6 35 Z" fill="var(--ui-player-fill)" stroke="var(--ui-player-stroke)"
         stroke-width="2.5" stroke-linejoin="round"/>
 </svg>`;
 

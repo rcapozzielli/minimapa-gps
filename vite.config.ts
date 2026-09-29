@@ -10,4 +10,6 @@ export default defineConfig({
   },
   // O MapLibre sozinho tem ~1 MB (280 kB com gzip); é esperado.
   build: { chunkSizeWarningLimit: 1200 },
+  // Worker do MapLibre em formato ES module (ver src/map/map.ts).
+  worker: { format: 'es' },
 });

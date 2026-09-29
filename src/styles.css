@@ -1,15 +1,17 @@
-/* Variáveis da interface. Os temas (fase 5) trocam estes valores. */
+/* Variáveis da interface. Estes são os valores padrão; cada tema sobrescreve
+   as --ui-* pelo bloco "metadata.minimapa.ui" do seu JSON (ver themes.ts). */
 :root {
   --ui-bg: rgba(20, 22, 24, 0.88);
   --ui-fg: #f2f2f2;
   --ui-accent: #c040d8;
-  --player-fill: #ffffff;
-  --player-stroke: #1b1d1f;
+  --ui-player-fill: #ffffff;
+  --ui-player-stroke: #1b1d1f;
+  --ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ui-font);
 }
 
 html,

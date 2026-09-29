@@ -7,7 +7,7 @@ import { startLocation } from './geo/location';
 import { createButtons, toast } from './ui/buttons';
 
 const ui = document.getElementById('ui')!;
-const map = createMap('map');
+const map = createMap('map', 'los-santos');
 
 createPlayer(map);
 setupCamera(map);
