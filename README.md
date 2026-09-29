@@ -12,7 +12,8 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
 - Rota com linha grossa no estilo de GPS de jogo; o trecho já percorrido some.
 - Navegação passo a passo em português: painel com a próxima manobra e **voz**.
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
-- Três temas: **Los Santos** (GTA V), **Red Dead** (RDR2) e **Minecraft**.
+- Quatro temas: **Los Santos** (GTA V), **Red Dead** (RDR2), **Minecraft** e **Hyrule**
+  (Zelda: Breath of the Wild).
 - Instalável na tela inicial; a tela fica ligada durante a navegação.
 
 ## Rodar localmente
@@ -162,5 +163,11 @@ src/ui/               barra de busca, painel de manobra, cartão da viagem, bot�
   No app, trocamos o fundo preto por grama, adicionamos pedra nas áreas urbanas, variamos
   o material dos prédios e reduzimos a altura deles para não esconderem a rota.
   O texto da licença é publicado junto com o app em `public/licenses/sickmaps-LICENSE.txt`.
+- **Fontes da interface:** Oswald, Rye, IM Fell English, Pixelify Sans, Pirata One e Cinzel,
+  via [Fontsource](https://fontsource.org), todas sob a [SIL Open Font License 1.1](https://openfontlicense.org)
+  (lista em `public/licenses/fonts-OFL.txt`).
+- **Tema Hyrule:** paleta e ícones desenhados para o app, inspirados no mapa de Zelda:
+  Breath of the Wild; nenhuma arte do jogo é usada.
 
-Projeto pessoal de fã, sem fins lucrativos e sem relação com a Rockstar Games, a Mojang ou a Microsoft.
+Projeto pessoal de fã, sem fins lucrativos e sem relação com a Rockstar Games, a Mojang, a
+Microsoft ou a Nintendo.
