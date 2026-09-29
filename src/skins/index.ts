@@ -66,8 +66,54 @@ const SKINS: Record<string, Skin> = {
   sa: { ...DEFAULT }, // San Andreas (GTA SA)
   rdr: { ...DEFAULT }, // Red Dead
   mc: { ...DEFAULT }, // Minecraft
-  zelda: { ...DEFAULT }, // Hyrule (Zelda BotW)
+  zelda: zeldaSkin(), // Hyrule (Zelda BotW)
 };
+
+/**
+ * Hyrule: seta amarela facetada (a metade direita mais escura dá volume) e destino em
+ * forma de "carimbo" laranja: disco com anel tracejado, losango no centro e quatro
+ * marcas nos pontos cardeais. Desenho próprio, sem arte do jogo. O destino é um blip
+ * (centro sobre o local), então a sombra de contato fica logo abaixo do disco.
+ */
+function zeldaSkin(): Skin {
+  return {
+    player: `
+<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-zelda-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="20" cy="23" rx="16" ry="14" fill="url(#sk-zelda-shadow)"/>
+  <path d="M20 2 L34 35 L20 27 L6 35 Z" fill="var(--ui-player-fill)"/>
+  <path d="M20 2 L34 35 L20 27 Z" fill="#7a4a00" fill-opacity=".28"/>
+  <path d="M20 2 L34 35 L20 27 L6 35 Z" fill="none" stroke="var(--ui-player-stroke)"
+        stroke-width="2.5" stroke-linejoin="round"/>
+</svg>`,
+    pin: `
+<svg viewBox="-6 -6 60 60" width="48" height="48" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-zelda-pin-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="24" cy="29" rx="22" ry="18" fill="url(#sk-zelda-pin-shadow)"/>
+  <g stroke-linecap="round">
+    <path d="M24 1v6M24 41v6M1 24h6M41 24h6" stroke="#4a1e00" stroke-width="4.5"/>
+    <path d="M24 1.8v4.4M24 41.8v4.4M1.8 24h4.4M41.8 24h4.4" stroke="#ffb060" stroke-width="2"/>
+  </g>
+  <circle cx="24" cy="24" r="16" fill="#f0802a" stroke="#4a1e00" stroke-width="2.5"/>
+  <circle cx="24" cy="24" r="11.5" fill="none" stroke="#ffe2b8" stroke-width="1.5"
+          stroke-dasharray="3 2.2"/>
+  <path d="M24 16 L31 24 L24 32 L17 24 Z" fill="#fff4e0" stroke="#4a1e00" stroke-width="1.5"
+        stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="2.2" fill="#c85a10"/>
+</svg>`,
+    pinAnchor: 'center',
+  };
+}
 
 /** Skin pelo id (ou a padrão, se o tema não declarar skin ou o id não existir). */
 export function getSkin(id: string | undefined): Skin {
