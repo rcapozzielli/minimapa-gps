@@ -51,8 +51,16 @@ export function setupRouteLayer(map: maplibregl.Map): void {
   // continua valendo depois de um setStyle (ele ignora camadas que não existem no momento).
   map.on('click', ALT_HIT_LAYER, (e: maplibregl.MapLayerMouseEvent) => {
     const { routes, navigating } = getState();
+    if (navigating) return;
+    // As alternativas costumam dividir o começo e o fim com a rota escolhida. O
+    // queryRenderedFeatures não respeita a ordem das camadas, então um toque em cima da
+    // rota escolhida também "acerta" a faixa de toque da alternativa: nesse caso, ignoramos.
+    // (Caixa de ±12 px em volta do dedo: a rota escolhida é bem mais fina que a faixa de toque.)
+    const { x, y } = e.point;
+    const box: [maplibregl.PointLike, maplibregl.PointLike] = [[x - 12, y - 12], [x + 12, y + 12]];
+    if (map.queryRenderedFeatures(box, { layers: ['route-line', 'route-casing'] }).length) return;
     const i = Number(e.features?.[0]?.properties?.index);
-    if (navigating || !Number.isInteger(i) || !routes[i]) return;
+    if (!Number.isInteger(i) || !routes[i]) return;
     setState({ routeIndex: i, route: routes[i] });
   });
   // No PC, o cursor vira "mãozinha" em cima de uma alternativa.

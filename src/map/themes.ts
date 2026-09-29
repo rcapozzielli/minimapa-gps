@@ -140,6 +140,8 @@ let appliedUiKeys: string[] = [];
 let appliedSkinClass: string | null = null;
 let current: { id: string; teardown: () => void } | null = null;
 let switchToken = 0;
+/** Último tema pedido (pode ainda estar carregando), ou null se nenhum troca está pendente. */
+let requestedId: string | null = null;
 const appliedListeners: Array<(meta: ThemeMeta) => void> = [];
 
 // ---------- Tipos de tema ----------
@@ -307,6 +309,14 @@ export function getCurrentThemeId(): string {
   return current?.id ?? THEMES[0].id;
 }
 
+/**
+ * O tema que vai ficar na tela: o último pedido, se ainda estiver carregando, ou o atual.
+ * O seletor usa este (e não o atual) para não ignorar uma escolha feita durante um carregamento.
+ */
+export function getTargetThemeId(): string {
+  return requestedId ?? getCurrentThemeId();
+}
+
 export function getSavedThemeId(): string {
   try {
     const id = localStorage.getItem(STORAGE_KEY);
@@ -359,9 +369,17 @@ export function bindThemes(map: maplibregl.Map): void {
 export async function setTheme(map: maplibregl.Map, id: string): Promise<void> {
   const theme = THEMES.find((t) => t.id === id) ?? THEMES[0];
   const token = ++switchToken;
-  const style = await theme.load();
+  requestedId = theme.id;
+  let style: maplibregl.StyleSpecification;
+  try {
+    style = await theme.load();
+  } catch (err) {
+    if (token === switchToken) requestedId = null; // falhou: o alvo volta a ser o tema atual
+    throw err;
+  }
   // Se outra troca começou enquanto esperávamos, esta é descartada.
   if (token !== switchToken) return;
+  requestedId = null;
 
   current?.teardown();
   map.setStyle(style, { diff: false });

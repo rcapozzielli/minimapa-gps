@@ -108,7 +108,10 @@
 .skin-zelda .search-results li:active {
   background: rgba(64, 208, 242, 0.14);
 }
-.skin-zelda button:focus-visible {
-  outline: 2px solid var(--ui-accent);
-  outline-offset: 2px;
+/* Foco: os botões são recortados por clip-path, que cortaria um outline por fora.
+   Desenhamos o anel por DENTRO (box-shadow inset), com um filete escuro para contrastar. */
+.skin-zelda #ui button:focus-visible,
+.skin-zelda .search-field:focus-within {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--ui-accent), inset 0 0 0 5px #04202b;
 }

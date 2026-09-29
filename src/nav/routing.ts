@@ -42,7 +42,7 @@ export async function reroute(): Promise<boolean> {
   if (!position || !destination) return false;
   setState({ rerouting: true });
   try {
-    const [route] = await fetchRoutes(position, destination.lngLat, movingHeading());
+    const [route] = await fetchRoutes(position, destination.lngLat, movingHeading(), false);
     if (getState().destination !== destination) return false;
     setState({ route, routes: [route], routeIndex: 0, rerouting: false });
     return true;

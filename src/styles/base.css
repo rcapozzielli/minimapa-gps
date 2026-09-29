@@ -14,6 +14,7 @@
   --ui-fg: #f2f2f2;
   --ui-accent: #c040d8;
   --ui-accent-fg: #ffffff; /* texto por cima da cor de destaque (ex.: botão "Iniciar") */
+  --ui-error: #ff8a80; /* texto de erro sobre o painel (skins de painel claro usam um vermelho escuro) */
   --ui-player-fill: #ffffff;
   --ui-player-stroke: #1b1d1f;
   --ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -61,8 +62,11 @@ body {
   pointer-events: none;
   color: var(--ui-fg);
 }
-#ui > *,
-.bottom-stack > * {
+/* :where() zera a especificidade: assim contêineres que só organizam o layout
+   (.top-stack, .bottom-stack, .fab-row, .sheet.is-closed) conseguem voltar a
+   pointer-events: none e não "engolem" toques no mapa nas áreas vazias. */
+:where(#ui) > *,
+:where(.bottom-stack) > * {
   pointer-events: auto;
 }
 

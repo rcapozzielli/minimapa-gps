@@ -4,7 +4,7 @@
 // temas: tudo vem da lista THEMES de src/map/themes.ts.
 import type * as maplibregl from 'maplibre-gl';
 import { setState } from '../state';
-import { THEMES, getCurrentThemeId, setTheme, type ThemePreview } from '../map/themes';
+import { THEMES, getTargetThemeId, setTheme, type ThemePreview } from '../map/themes';
 import { createSheet } from './sheet';
 import { toast } from './buttons';
 
@@ -43,7 +43,7 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
     card.querySelector('.theme-name')!.textContent = t.label;
     card.addEventListener('click', () => {
       setState({ sheet: null });
-      if (t.id === getCurrentThemeId()) return;
+      if (t.id === getTargetThemeId()) return;
       setTheme(map, t.id).catch(() => toast(root, `Não consegui carregar o mapa ${t.label}.`));
     });
     return card;
@@ -52,7 +52,7 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
 
   // Ao abrir, marca o tema atual.
   sheet.onOpen(() => {
-    const current = getCurrentThemeId();
+    const current = getTargetThemeId();
     for (const card of cards) {
       const on = card.dataset.theme === current;
       card.classList.toggle('is-current', on);

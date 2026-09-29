@@ -47,6 +47,9 @@ export function createManeuverPanel(root: HTMLElement): void {
 
     const steps = getState().route!.steps;
     const step = steps[s.nav.stepIndex];
+    // Logo depois de um recálculo, `nav` ainda é o da rota antiga e o índice pode não existir
+    // na nova. O navegador recalcula o `nav` em seguida (no mesmo setState), e aí redesenhamos.
+    if (!step) return;
     // Só redesenha ícone e textos quando a manobra muda; a distância muda sempre.
     if (step !== lastStep) {
       lastStep = step;

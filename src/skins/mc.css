@@ -28,6 +28,7 @@
   --ui-shadow: inset var(--mc-px) var(--mc-px) 0 #ffffff, inset calc(-1 * var(--mc-px)) calc(-1 * var(--mc-px)) 0 #555555;
   --ui-clip: var(--mc-dent);
   --ui-divider: rgba(0, 0, 0, 0.22);
+  --ui-error: #a01818; /* vermelho escuro: legível no cinza do painel */
 }
 
 .skin-mc #ui {
@@ -121,4 +122,12 @@
   border-radius: 0;
   height: 4px;
   width: 36px;
+}
+
+/* Foco: painéis e botões são recortados por clip-path (os "dentes" dos cantos), que
+   cortaria um outline por fora. Desenhamos o anel por DENTRO, branco com filete preto. */
+.skin-mc #ui button:focus-visible,
+.skin-mc .search-field:focus-within {
+  outline: none;
+  box-shadow: inset 0 0 0 3px #ffffff, inset 0 0 0 5px #000000;
 }

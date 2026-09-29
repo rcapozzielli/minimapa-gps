@@ -2,7 +2,8 @@
 // Política de uso: ele é compartilhado e sem garantia. Por isso garantimos
 // no máximo uma requisição a cada 2 s, e só uma de cada vez.
 // As rotas alternativas vêm na MESMA requisição (alternatives=true): não custam
-// nenhuma chamada a mais ao servidor.
+// nenhuma chamada a mais, mas dão mais trabalho ao servidor. Por isso só as pedimos
+// na prévia da rota; no recálculo durante a navegação, não.
 import type { LngLat } from '../state';
 
 export interface OsrmManeuver {
@@ -45,7 +46,13 @@ export class RouteError extends Error {}
  * que o OSRM achar (normalmente 0 a 2). `heading` (opcional) diz em que direção
  * você está indo, para o OSRM não mandar dar meia-volta sem necessidade.
  */
-export async function fetchRoutes(from: LngLat, to: LngLat, heading?: number | null): Promise<Route[]> {
+export async function fetchRoutes(
+  from: LngLat,
+  to: LngLat,
+  heading?: number | null,
+  /** Pedir rotas alternativas? (Custam mais ao servidor: no recálculo, não pedimos.) */
+  alternatives = true,
+): Promise<Route[]> {
   inflight?.abort();
   const ctrl = new AbortController();
   inflight = ctrl;
@@ -60,7 +67,7 @@ export async function fetchRoutes(from: LngLat, to: LngLat, heading?: number | n
     overview: 'full',
     geometries: 'geojson',
     steps: 'true',
-    alternatives: 'true',
+    alternatives: String(alternatives),
   });
   if (heading != null) params.set('bearings', `${Math.round(heading)},60;`);
 
