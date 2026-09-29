@@ -79,25 +79,6 @@ const MINECRAFT_META: ThemeMeta = {
   },
 };
 
-// San Andreas: o sickmaps já monta o radar do SA (chão verde-escuro, ruas claras, sem
-// rótulos) e o CSS dele (classe sickmaps--gta-sa) dá o tom sépia e a moldura. Não precisou
-// de ajuste como o tuneMinecraft: o estilo "dark" não tem prédios 3D nem camadas órfãs.
-// Rota amarela, como os blips de missão do radar do SA; interface preta de texto claro.
-const SA_META: ThemeMeta = {
-  label: 'San Andreas',
-  skin: 'sa',
-  route: { color: '#ffd23a', casing: '#241a00', glow: '#ffe27a' },
-  ui: {
-    bg: 'rgba(0, 0, 0, 0.78)',
-    fg: '#dfe8f4', // branco levemente azulado, como o texto dos menus do SA
-    accent: '#f0b429', // dourado
-    'accent-fg': '#000000',
-    'player-fill': '#ffffff',
-    'player-stroke': '#000000',
-    font: "'Oswald', 'Arial Narrow', system-ui, sans-serif",
-  },
-};
-
 /** Para adicionar um tema: crie o JSON em public/styles/ (ou use um tema do sickmaps) e registre aqui. */
 export const THEMES: ThemeInfo[] = [
   jsonTheme('los-santos', 'Los Santos', 'los-santos.json', {
@@ -119,9 +100,11 @@ export const THEMES: ThemeInfo[] = [
     route: '#ff2a1a',
     accent: '#2f6b1f',
   }, minecraftEnter),
-  sickmapsTheme('gta-sa', SA_META, {
-    land: '#2a3024',
-    road: '#ebe4d4',
+  // San Andreas: tema JSON próprio (antes era o do sickmaps, com a lógica invertida:
+  // ruas claras sobre fundo escuro). Cores medidas em referencias/sa-mapa.png.
+  jsonTheme('san-andreas', 'San Andreas', 'san-andreas.json', {
+    land: '#9f9f9e',
+    road: '#0e110b',
     route: '#ffd23a',
     accent: '#f0b429',
   }),

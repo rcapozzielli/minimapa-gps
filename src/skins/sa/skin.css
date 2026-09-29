@@ -4,7 +4,7 @@
    - todo texto com contorno preto (o SA escreve tudo "contornado" por cima do jogo);
    - títulos e nome da rua numa fonte gótica legível (Pirata One), como o nome do bairro
      que aparece no canto da tela ao entrar numa área; números e corpo em Oswald.
-   Cores (--ui-bg, --ui-fg, --ui-accent...) vêm do SA_META em src/map/themes.ts.
+   Cores (--ui-bg, --ui-fg, --ui-accent...) vêm de public/styles/san-andreas.json.
    `:root.skin-sa` (e não só `.skin-sa`) para ganhar do :root de base.css sem depender
    da ordem dos arquivos CSS. */
 :root.skin-sa {
