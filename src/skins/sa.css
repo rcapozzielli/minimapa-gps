@@ -1,6 +1,105 @@
 /* Skin "sa": San Andreas (GTA SA).
-   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-sa
-   e, se preciso, faz overrides pontuais escopados por .skin-sa.
-   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
-.skin-sa {
+   Visual dos menus e do HUD do SA (arte própria, só fontes livres):
+   - painéis pretos semitransparentes, retos, sem borda nem cantos arredondados;
+   - todo texto com contorno preto (o SA escreve tudo "contornado" por cima do jogo);
+   - títulos e nome da rua numa fonte gótica legível (Pirata One), como o nome do bairro
+     que aparece no canto da tela ao entrar numa área; números e corpo em Oswald.
+   Cores (--ui-bg, --ui-fg, --ui-accent...) vêm do SA_META em src/map/themes.ts.
+   `:root.skin-sa` (e não só `.skin-sa`) para ganhar do :root de base.css sem depender
+   da ordem dos arquivos CSS. */
+:root.skin-sa {
+  --ui-panel-bg: var(--ui-bg);
+  --ui-font-display: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --ui-radius: 0px;
+  --ui-radius-btn: 0px;
+  --ui-border: 0 solid transparent;
+  --ui-shadow: none;
+  --ui-clip: none;
+  --ui-divider: rgba(223, 232, 244, 0.14);
+
+  /* Contornos de texto (text-shadow em 8 direções; funciona em qualquer navegador,
+     diferente de -webkit-text-stroke, que "come" o miolo das letras finas). */
+  --sa-outline: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000;
+  --sa-outline-thick: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000,
+    0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 3px 3px 0 #000;
+  --sa-gothic: 'Pirata One', 'Oswald', serif;
+}
+
+/* Contorno fino em todo texto da interface (text-shadow é herdado pelos filhos). */
+.skin-sa #ui {
+  text-shadow: var(--sa-outline);
+}
+
+/* Números grandes: Oswald com contorno grosso, como o dinheiro e o relógio do HUD. */
+.skin-sa .maneuver-dist,
+.skin-sa .trip-time {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: var(--sa-outline-thick);
+}
+
+/* Fonte gótica: sem caixa alta (letra gótica em maiúsculas fica ilegível) e sem negrito
+   falso (a Pirata One só tem peso 400). */
+.skin-sa .sheet-title,
+.skin-sa .maneuver-street,
+.skin-sa .toast-info {
+  font-family: var(--sa-gothic);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  text-shadow: var(--sa-outline-thick);
+}
+.skin-sa .sheet-title {
+  font-size: 28px;
+}
+.skin-sa .maneuver-street {
+  font-size: 22px;
+}
+.skin-sa .toast-info {
+  font-size: 24px;
+  background: var(--ui-bg);
+  color: var(--ui-accent);
+}
+
+/* Painel de manobra: faixa dourada fina no lugar da barra grossa. */
+.skin-sa .maneuver {
+  border-left: 4px solid var(--ui-accent);
+}
+.skin-sa .maneuver-icon {
+  filter: drop-shadow(2px 2px 0 #000);
+}
+
+/* Botões flutuantes: retângulos pretos; o ícone também ganha contorno. */
+.skin-sa .fab svg {
+  filter: drop-shadow(1px 1px 0 #000) drop-shadow(-1px -1px 0 #000);
+}
+.skin-sa .fab:active,
+.skin-sa .search-results li:active {
+  background: rgba(240, 180, 41, 0.22);
+}
+
+/* Botão principal: faixa dourada com texto preto (sem contorno, que embolaria as letras). */
+.skin-sa .btn-primary,
+.skin-sa .trip-start {
+  border-radius: 0;
+  text-shadow: none;
+  font-weight: 600;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+}
+.skin-sa .btn-secondary,
+.skin-sa .trip-cancel {
+  border-radius: 0;
+  background: rgba(223, 232, 244, 0.12);
+}
+.skin-sa .update button {
+  border-radius: 0;
+  text-shadow: none;
+}
+
+/* Alça da folha: um traço reto. */
+.skin-sa .sheet-handle::before {
+  border-radius: 0;
+  height: 4px;
+  opacity: 0.5;
 }
