@@ -696,3 +696,27 @@ body[data-sheet='arrived'] .bottom-stack {
   overflow-y: auto;
   touch-action: pan-y; /* dentro do conteúdo, rolar volta a funcionar */
 }
+
+/* ---------- Folha "arrived": chegada (src/ui/arrivedSheet.ts) ---------- */
+.arrived {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+.arrived-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--ui-accent);
+}
+.arrived-dest {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.arrived-ok {
+  width: 100%;
+  margin-top: 12px;
+}

@@ -25,6 +25,7 @@ import { createSpeedometer } from './ui/speedometer';
 import { createRoutePreview } from './ui/routePreview';
 import { createNavBar } from './ui/navBar';
 import { createThemePicker } from './ui/themePicker';
+import { createArrivedSheet } from './ui/arrivedSheet';
 import { setupUpdatePrompt } from './ui/updatePrompt';
 
 const ui = document.getElementById('ui')!;
@@ -53,9 +54,10 @@ const fabRow = createButtons(bottom);
 createSpeedometer(fabRow.left);
 createNavBar(bottom);
 
-// Folhas de baixo: prévia da rota (abre sozinha quando há destino) e seletor de mapas.
+// Folhas de baixo: prévia da rota (abre sozinha quando há destino), seletor de mapas e chegada.
 const routeSheet = createRoutePreview(ui);
 createThemePicker(ui, map);
+createArrivedSheet(ui);
 
 subscribe((s, changed) => {
   // A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
@@ -79,8 +81,9 @@ startRouting((routes) =>
   showRouteOverview(map, routes.flatMap((r) => r.coords), routeSheet.el.offsetHeight),
 );
 setupNavigator(() => {
-  toast(ui, 'Você chegou ao destino!', 'info');
+  // Chegou: esquece o destino e mostra a folha "Você chegou".
   setState({ destination: null });
+  setState({ sheet: 'arrived' });
 });
 if (isSimulation()) {
   // O botão "Desviar (sim)" fica no centro da linha de baixo, ao lado de "Recentralizar".
