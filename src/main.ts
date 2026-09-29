@@ -5,7 +5,7 @@ import './styles/base.css';
 import './styles/components.css';
 import { getState, setState, subscribe } from './state';
 import { createMap } from './map/map';
-import { getSavedThemeId, nextThemeId, setTheme, themeLabel } from './map/themes';
+import { getSavedThemeId, setTheme } from './map/themes';
 import { createPlayer } from './map/player';
 import { setupCamera, showRouteOverview } from './map/camera';
 import { setupRouteLayer } from './map/routeLayer';
@@ -19,8 +19,11 @@ import { isSimulation, startSimulator } from './nav/simulator';
 import { createButtons, toast } from './ui/buttons';
 import { createSearchBar } from './ui/searchBar';
 import { createManeuverPanel } from './ui/maneuverPanel';
+import { createMapControls } from './ui/mapControls';
+import { createSpeedometer } from './ui/speedometer';
 import { createRoutePreview } from './ui/routePreview';
 import { createNavBar } from './ui/navBar';
+import { createThemePicker } from './ui/themePicker';
 import { setupUpdatePrompt } from './ui/updatePrompt';
 
 const ui = document.getElementById('ui')!;
@@ -30,27 +33,31 @@ createPlayer(map);
 setupCamera(map);
 setupRouteLayer(map);
 
-// Topo: barra de busca (parado) ou painel de manobra (navegando).
-createSearchBar(ui, () => getState().position ?? map.getCenter().toArray());
-createManeuverPanel(ui);
-// Pilha de baixo: botões flutuantes (sobem junto com a folha aberta).
+// Pilha do topo: barra de busca (parado) ou painel de manobra (navegando) e, abaixo,
+// a coluna de botões do mapa à direita (Camadas, bússola, voz).
+const top = document.createElement('div');
+top.className = 'top-stack';
+ui.append(top);
+createSearchBar(top, () => getState().position ?? map.getCenter().toArray());
+createManeuverPanel(top);
+setupUpdatePrompt(top); // aviso de versão nova do app, logo abaixo da busca
+createMapControls(top, map);
+
+// Pilha de baixo (sobe junto com a folha aberta): velocímetro, "Recentralizar" e,
+// durante a navegação, a barra com chegada e "Encerrar".
 const bottom = document.createElement('div');
 bottom.className = 'bottom-stack';
 ui.append(bottom);
-const fabRow = createButtons(bottom, () => {
-  const id = nextThemeId();
-  setTheme(map, id).then(
-    () => toast(ui, themeLabel(id), 'info', 1500),
-    () => toast(ui, `Não consegui carregar o tema ${themeLabel(id)}.`),
-  );
-});
-// Barra de chegada/encerrar durante a navegação.
+const fabRow = createButtons(bottom);
+createSpeedometer(fabRow.left);
 createNavBar(bottom);
-// Folha de prévia da rota (abre sozinha quando há destino).
-const routeSheet = createRoutePreview(ui);
 
-// A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
+// Folhas de baixo: prévia da rota (abre sozinha quando há destino) e seletor de mapas.
+const routeSheet = createRoutePreview(ui);
+createThemePicker(ui, map);
+
 subscribe((s, changed) => {
+  // A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
   if ('navigating' in changed) document.body.classList.toggle('is-navigating', s.navigating);
   // Qual folha está aberta: o CSS esconde os botões de baixo atrás de folhas altas.
   if ('sheet' in changed) document.body.dataset.sheet = s.sheet ?? '';
@@ -58,11 +65,10 @@ subscribe((s, changed) => {
 
 initVoice();
 setupWakeLock();
-setupUpdatePrompt(ui);
 onLongPress(map, (lngLat) => {
   if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
 });
-// Rotas prontas: enquadra todas as opções (a escolhida e as alternativas).
+// Rotas prontas: enquadra todas as opções (a escolhida e as alternativas) acima da folha.
 startRouting((routes) =>
   showRouteOverview(map, routes.flatMap((r) => r.coords), routeSheet.el.offsetHeight),
 );
@@ -71,7 +77,8 @@ setupNavigator(() => {
   setState({ destination: null });
 });
 if (isSimulation()) {
-  startSimulator(fabRow);
+  // O botão "Desviar (sim)" fica no centro da linha de baixo, ao lado de "Recentralizar".
+  startSimulator(fabRow.center);
   // Para depurar no console do navegador (só no modo simulação): minimapa.map, minimapa.getState()
   Object.assign(window, { minimapa: { map, getState } });
 }

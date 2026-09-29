@@ -18,12 +18,26 @@
   box-sizing: border-box;
 }
 
-/* ---------- Busca (topo) ---------- */
-.search {
+/* ---------- Pilha do topo: busca ou manobra + coluna de botões à direita ---------- */
+.top-stack {
   position: absolute;
   top: calc(var(--gutter) + var(--safe-top));
   left: calc(var(--gutter) + var(--safe-left));
   right: calc(var(--gutter) + var(--safe-right));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.top-stack > * {
+  pointer-events: auto;
+}
+
+/* ---------- Busca (topo) ---------- */
+.search {
+  position: relative;
+  z-index: 2; /* a lista de resultados passa por cima da coluna de botões */
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
 }
@@ -66,6 +80,10 @@
   cursor: pointer;
 }
 .search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   list-style: none;
   margin: 8px 0 0;
   padding: 4px 0;
@@ -104,13 +122,18 @@
 .is-navigating .search {
   display: none;
 }
-.maneuver {
-  position: absolute;
-  top: calc(var(--gutter) + var(--safe-top));
-  left: calc(var(--gutter) + var(--safe-left));
-  right: calc(var(--gutter) + var(--safe-right));
+/* Painel de manobra + chip "Depois" logo abaixo, alinhado à esquerda. */
+.nav-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
+}
+.maneuver {
+  align-self: stretch;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -149,6 +172,46 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Chip "Depois": a manobra seguinte, em miniatura (é uma caixa .panel). */
+.maneuver-next {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 2px 10px 2px 14px;
+  backdrop-filter: blur(6px);
+}
+.maneuver-next-label {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+.maneuver-next-icon {
+  display: grid;
+  place-items: center;
+  color: var(--ui-accent);
+}
+.maneuver-next-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* ---------- Coluna de botões do mapa (src/ui/mapControls.ts) ---------- */
+.map-controls {
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.map-controls > * {
+  pointer-events: auto;
+}
+.compass-needle {
+  transition: transform 120ms linear;
 }
 
 /* ---------- Pilha de baixo: botões + barra da navegação ---------- */
@@ -198,13 +261,26 @@ body[data-sheet='arrived'] .bottom-stack {
 .fab:active {
   transform: scale(0.96);
 }
+/* Linha de baixo em 3 colunas: velocímetro | Recentralizar (+ simulador) | vazio. */
 .fab-row {
-  display: flex;
-  justify-content: center;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
   gap: 12px;
   pointer-events: none;
 }
-.fab-row > * {
+.fab-row-left {
+  justify-self: start;
+}
+.fab-row-center {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.fab-row-left > *,
+.fab-row-center > * {
   pointer-events: auto;
 }
 .fab-round {
@@ -212,8 +288,105 @@ body[data-sheet='arrived'] .bottom-stack {
   width: var(--tap);
   padding: 0;
 }
+/* Pílula com ícone + texto (ex.: "Recentralizar"). */
+.fab-pill {
+  padding: 0 22px 0 18px;
+}
 .fab-sim {
   background: #7a5a00;
+  color: #fff;
+}
+
+/* ---------- Velocímetro (src/ui/speedometer.ts) ----------
+   Redondo de propósito: usa as cores/borda/sombra da skin, mas não o raio nem o clip
+   (uma skin pode dar outra forma com `.skin-x .speedo { ... }`). */
+.speedo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  box-sizing: border-box;
+  border: var(--ui-border);
+  border-radius: 50%;
+  background: var(--ui-panel-bg);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(6px);
+  line-height: 1;
+}
+.speedo-value {
+  font-family: var(--ui-font-display);
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.speedo-unit {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* ---------- Folha "themes": seletor de mapas (src/ui/themePicker.ts) ---------- */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding-bottom: 4px;
+}
+.theme-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 6px 10px;
+  border: 2px solid var(--ui-divider);
+  border-radius: calc(var(--ui-radius) - 2px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease-out;
+}
+.theme-card:active {
+  transform: scale(0.97);
+}
+.theme-thumb {
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: calc(var(--ui-radius) - 6px);
+}
+.theme-thumb svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.theme-name {
+  padding: 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.theme-card.is-current {
+  border-color: var(--ui-accent);
+}
+/* Selo de "atual" (✓) no canto da miniatura. */
+.theme-card.is-current::after {
+  content: '✓';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ui-accent);
+  color: var(--ui-accent-fg);
+  font-size: 15px;
+  font-weight: 800;
 }
 
 /* ---------- Barra de baixo durante a navegação (src/ui/navBar.ts) ---------- */
@@ -412,10 +585,8 @@ body[data-sheet='arrived'] .bottom-stack {
 
 /* Aviso de versão nova do app (PWA), logo abaixo da barra de busca. */
 .update {
-  position: absolute;
-  top: calc(80px + var(--safe-top));
-  left: calc(var(--gutter) + var(--safe-left));
-  right: calc(var(--gutter) + var(--safe-right));
+  /* dentro da pilha do topo (logo abaixo da busca), empurrando a coluna de botões */
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
   display: flex;
