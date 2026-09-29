@@ -1,6 +1,108 @@
 /* Skin "gta": Los Santos (GTA V).
-   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-gta
-   e, se preciso, faz overrides pontuais escopados por .skin-gta.
-   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
-.skin-gta {
+   Visual do HUD e do menu de pausa do GTA V (arte própria, só fontes livres):
+   - painéis escuros retos (canto de 2px), com uma faixa fina da cor de destaque no topo,
+     como as abas do menu de pausa;
+   - Oswald (condensada) em caixa alta com espaçamento largo;
+   - botão principal branco com texto preto, como o item selecionado do menu;
+     item tocado da lista também fica branco.
+   Cores (--ui-bg, --ui-fg, --ui-accent...) vêm de public/styles/los-santos.json.
+   `:root.skin-gta` para ganhar do :root de base.css sem depender da ordem do CSS. */
+:root.skin-gta {
+  --ui-panel-bg: var(--ui-bg);
+  --ui-font-display: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --ui-radius: 2px;
+  --ui-radius-btn: 2px;
+  --ui-border: 0 solid transparent;
+  /* faixa de 3px da cor de destaque no topo + sombra suave (sem clip-path, que a cortaria) */
+  --ui-shadow: inset 0 3px 0 var(--ui-accent), 0 6px 18px rgba(0, 0, 0, 0.45);
+  --ui-clip: none;
+  --ui-divider: rgba(255, 255, 255, 0.1);
+  --gta-select-bg: #f0f0f0; /* linha/botão "selecionado" do menu */
+  --gta-select-fg: #111111;
+}
+
+.skin-gta #ui {
+  letter-spacing: 0.02em;
+}
+
+/* Painel de manobra: só a faixa do topo; a barra lateral grossa sai. */
+.skin-gta .maneuver {
+  border-left: 0;
+  padding-left: 16px;
+}
+.skin-gta .maneuver-dist {
+  font-weight: 600;
+  font-size: 38px;
+  letter-spacing: 0.01em;
+}
+.skin-gta .maneuver-street,
+.skin-gta .sheet-title,
+.skin-gta .trip-time {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.skin-gta .maneuver-action,
+.skin-gta .trip-sub {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* Lista de resultados: o item tocado vira a "linha selecionada" branca do menu. */
+.skin-gta .search-results li:active,
+.skin-gta .fab:active {
+  background: var(--gta-select-bg);
+  color: var(--gta-select-fg);
+}
+.skin-gta .search-results strong {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Botões retos. */
+.skin-gta .fab {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.skin-gta .fab:active {
+  transform: none;
+}
+
+/* Botão principal = item selecionado do menu de pausa: branco, texto preto. */
+.skin-gta .btn-primary,
+.skin-gta .trip-start,
+.skin-gta .update button {
+  border-radius: 0;
+  background: var(--gta-select-bg);
+  color: var(--gta-select-fg);
+  font-family: var(--ui-font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  box-shadow: inset 0 -3px 0 var(--ui-accent);
+}
+.skin-gta .btn-secondary,
+.skin-gta .trip-cancel {
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Aviso rápido: como as notificações do jogo (painel escuro, faixa de cor à esquerda). */
+.skin-gta .toast {
+  border-radius: 2px;
+}
+.skin-gta .toast-info {
+  background: var(--ui-bg);
+  color: var(--ui-fg);
+  border-left: 6px solid var(--ui-accent);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* Alça da folha: traço reto. */
+.skin-gta .sheet-handle::before {
+  border-radius: 0;
+  height: 4px;
 }

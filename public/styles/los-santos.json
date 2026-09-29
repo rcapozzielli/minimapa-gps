@@ -12,7 +12,7 @@
         "accent": "#c93fe0",
         "player-fill": "#ffffff",
         "player-stroke": "#1a1c1e",
-        "font": "'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif"
+        "font": "'Oswald', 'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif"
       }
     }
   },

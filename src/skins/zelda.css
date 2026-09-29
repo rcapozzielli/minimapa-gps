@@ -9,7 +9,7 @@
     - como a borda some na diagonal, o fundo (--ui-panel-bg) desenha um fio ciano de
       1,5px exatamente ali, com um gradiente em cada canto. Assim o contorno fica fechado.
    Cores (fundo, texto, destaque) vêm do bloco "ui" de public/styles/hyrule.json. */
-.skin-zelda {
+:root.skin-zelda {
   /* Cor do fio da borda (também usado nas diagonais dos cantos). */
   --hy-line: rgba(95, 222, 250, 0.85);
   /* Fio diagonal de cada canto: a diagonal do corte fica a 7,07px do canto (10px / √2). */

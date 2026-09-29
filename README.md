@@ -12,8 +12,8 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
 - Rota com linha grossa no estilo de GPS de jogo; o trecho já percorrido some.
 - Navegação passo a passo em português: painel com a próxima manobra e **voz**.
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
-- Quatro temas: **Los Santos** (GTA V), **Red Dead** (RDR2), **Minecraft** e **Hyrule**
-  (Zelda: Breath of the Wild).
+- Cinco temas: **Los Santos** (GTA V), **Red Dead** (RDR2), **Minecraft**, **San Andreas**
+  (GTA SA) e **Hyrule** (Zelda: Breath of the Wild).
 - Instalável na tela inicial; a tela fica ligada durante a navegação.
 
 ## Rodar localmente
@@ -144,6 +144,7 @@ src/ui/               barra de busca, painel de manobra, cartão da viagem, bot�
 - **Só carro.** O perfil do OSRM público usado é o de carro.
 - **Tema Minecraft** esconde os nomes das ruas (a rua aparece no painel de manobra) e
   desenha prédios em 3D, o que pesa mais em celulares antigos.
+- **Tema San Andreas** também esconde os nomes das ruas, como o radar do jogo.
 
 ## Créditos e atribuições
 
@@ -157,7 +158,7 @@ src/ui/               barra de busca, painel de manobra, cartão da viagem, bot�
   inspirada no estudo de Lee Martin, ["How I Designed a Red Dead Redemption 2 Inspired Map"](https://dev.to/leemartin/how-i-designed-a-red-dead-redemption-2-inspired-map-in-mapbox-studio-4gkh).
 - **Cores do Minecraft:** a cor de grama vem da tabela de cores do item "mapa" do jogo
   ([Minecraft Wiki](https://minecraft.wiki/w/Map_item_format)).
-- **Tema Minecraft:** [sickmaps](https://github.com/Cincinnatus101010/sickmaps)
+- **Temas Minecraft e San Andreas:** [sickmaps](https://github.com/Cincinnatus101010/sickmaps)
   (`@iantroisi/sickmaps`), licença MIT, Copyright (c) 2026 Cincinnatus101010.
   Usamos os estilos, as texturas de bloco, a grade de chunks e o CSS de HUD da biblioteca.
   No app, trocamos o fundo preto por grama, adicionamos pedra nas áreas urbanas, variamos

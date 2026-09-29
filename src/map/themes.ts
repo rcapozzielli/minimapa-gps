@@ -59,13 +59,35 @@ const MINECRAFT_META: ThemeMeta = {
   label: 'Minecraft',
   skin: 'mc',
   route: { color: '#ff2a1a', casing: '#3d0500', glow: '#ff6a4d' }, // "redstone"
+  // Painéis cinza-claros como o inventário do jogo, com texto cinza-escuro (contraste 6:1).
+  // O verde de destaque é escuro o bastante para texto branco por cima (6,5:1).
   ui: {
-    bg: 'rgba(28, 28, 28, 0.92)',
-    fg: '#ffffff',
-    accent: '#5b9c3a',
+    bg: '#c6c6c6',
+    fg: '#373737',
+    accent: '#2f6b1f',
+    'accent-fg': '#ffffff',
     'player-fill': '#ffffff',
     'player-stroke': '#000000',
-    font: "'Courier New', ui-monospace, monospace",
+    font: "'Pixelify Sans', 'Courier New', ui-monospace, monospace",
+  },
+};
+
+// San Andreas: o sickmaps já monta o radar do SA (chão verde-escuro, ruas claras, sem
+// rótulos) e o CSS dele (classe sickmaps--gta-sa) dá o tom sépia e a moldura. Não precisou
+// de ajuste como o tuneMinecraft: o estilo "dark" não tem prédios 3D nem camadas órfãs.
+// Rota amarela, como os blips de missão do radar do SA; interface preta de texto claro.
+const SA_META: ThemeMeta = {
+  label: 'San Andreas',
+  skin: 'sa',
+  route: { color: '#ffd23a', casing: '#241a00', glow: '#ffe27a' },
+  ui: {
+    bg: 'rgba(0, 0, 0, 0.78)',
+    fg: '#dfe8f4', // branco levemente azulado, como o texto dos menus do SA
+    accent: '#f0b429', // dourado
+    'accent-fg': '#000000',
+    'player-fill': '#ffffff',
+    'player-stroke': '#000000',
+    font: "'Oswald', 'Arial Narrow', system-ui, sans-serif",
   },
 };
 
@@ -81,15 +103,21 @@ export const THEMES: ThemeInfo[] = [
     land: '#dec29b',
     road: '#5a4a3a',
     route: '#9e1b1b',
-    accent: '#b22a22',
+    accent: '#9e1b1b',
   }),
   // (cores literais: MC_MAP só é definido mais abaixo no arquivo)
   sickmapsTheme('minecraft', MINECRAFT_META, {
     land: '#7fb238',
     road: '#8f8f8f',
     route: '#ff2a1a',
-    accent: '#5b9c3a',
+    accent: '#2f6b1f',
   }, minecraftEnter),
+  sickmapsTheme('gta-sa', SA_META, {
+    land: '#2a3024',
+    road: '#ebe4d4',
+    route: '#ffd23a',
+    accent: '#f0b429',
+  }),
   jsonTheme('hyrule', 'Hyrule', 'hyrule.json', {
     land: '#d4cfae',
     road: '#f5efd9',
