@@ -1,11 +1,14 @@
-// Controlador de rota: quando o destino muda, pede a rota ao OSRM.
-// Se o GPS ainda não respondeu, espera a primeira posição.
+// Controlador de rota: quando o destino muda, pede as rotas ao OSRM (a melhor +
+// alternativas). Se o GPS ainda não respondeu, espera a primeira posição.
+// Quem escolhe outra alternativa (toque no mapa ou na folha da rota) faz
+// setState({ routeIndex, route }); aqui só preenchemos as opções.
 import { getState, setState, subscribe } from '../state';
-import { fetchRoute, RouteError, type Route } from '../services/osrm';
+import { fetchRoutes, RouteError, type Route } from '../services/osrm';
 
 let pending = false;
 
-export function startRouting(onNewRoute: (route: Route) => void): void {
+/** `onNewRoutes` recebe todas as opções (para a câmera enquadrar todas). */
+export function startRouting(onNewRoutes: (routes: Route[]) => void): void {
   subscribe((s, changed) => {
     if ('destination' in changed) {
       if (!s.destination) {
@@ -18,7 +21,7 @@ export function startRouting(onNewRoute: (route: Route) => void): void {
     }
     if (pending && s.position && s.destination) {
       pending = false;
-      void calculate(onNewRoute);
+      void calculate(onNewRoutes);
     }
   });
 }
@@ -32,13 +35,14 @@ function movingHeading(): number | null {
 /**
  * Recalcula a rota a partir de onde você está, mantendo o destino.
  * Usado pelo navegador quando você sai do trajeto. Retorna false se falhar.
+ * No recálculo só importa a melhor rota (não há tempo de escolher dirigindo).
  */
 export async function reroute(): Promise<boolean> {
   const { position, destination } = getState();
   if (!position || !destination) return false;
   setState({ rerouting: true });
   try {
-    const route = await fetchRoute(position, destination.lngLat, movingHeading());
+    const [route] = await fetchRoutes(position, destination.lngLat, movingHeading());
     if (getState().destination !== destination) return false;
     setState({ route, routes: [route], routeIndex: 0, rerouting: false });
     return true;
@@ -48,15 +52,15 @@ export async function reroute(): Promise<boolean> {
   }
 }
 
-async function calculate(onNewRoute: (route: Route) => void): Promise<void> {
+async function calculate(onNewRoutes: (routes: Route[]) => void): Promise<void> {
   const { position, destination } = getState();
   if (!position || !destination) return;
   try {
-    const route = await fetchRoute(position, destination.lngLat, movingHeading());
+    const routes = await fetchRoutes(position, destination.lngLat, movingHeading());
     // O usuário pode ter trocado/cancelado o destino enquanto esperávamos.
     if (getState().destination !== destination) return;
-    setState({ route, routes: [route], routeIndex: 0, routeLoading: false });
-    onNewRoute(route);
+    setState({ routes, routeIndex: 0, route: routes[0], routeLoading: false });
+    onNewRoutes(routes);
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return;
     const msg = err instanceof RouteError ? err.message : 'Sem conexão com o servidor de rotas.';

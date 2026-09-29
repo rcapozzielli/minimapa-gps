@@ -1,6 +1,8 @@
 // Rotas no servidor público de demonstração do OSRM (perfil carro).
 // Política de uso: ele é compartilhado e sem garantia. Por isso garantimos
 // no máximo uma requisição a cada 2 s, e só uma de cada vez.
+// As rotas alternativas vêm na MESMA requisição (alternatives=true): não custam
+// nenhuma chamada a mais ao servidor.
 import type { LngLat } from '../state';
 
 export interface OsrmManeuver {
@@ -39,10 +41,11 @@ let inflight: AbortController | null = null;
 export class RouteError extends Error {}
 
 /**
- * Calcula a rota de `from` até `to`. `heading` (opcional) diz em que direção
+ * Calcula as rotas de `from` até `to`: a melhor primeiro, seguida das alternativas
+ * que o OSRM achar (normalmente 0 a 2). `heading` (opcional) diz em que direção
  * você está indo, para o OSRM não mandar dar meia-volta sem necessidade.
  */
-export async function fetchRoute(from: LngLat, to: LngLat, heading?: number | null): Promise<Route> {
+export async function fetchRoutes(from: LngLat, to: LngLat, heading?: number | null): Promise<Route[]> {
   inflight?.abort();
   const ctrl = new AbortController();
   inflight = ctrl;
@@ -53,7 +56,12 @@ export async function fetchRoute(from: LngLat, to: LngLat, heading?: number | nu
   lastRequestAt = Date.now();
 
   const coords = [from, to].map((c) => `${c[0].toFixed(6)},${c[1].toFixed(6)}`).join(';');
-  const params = new URLSearchParams({ overview: 'full', geometries: 'geojson', steps: 'true' });
+  const params = new URLSearchParams({
+    overview: 'full',
+    geometries: 'geojson',
+    steps: 'true',
+    alternatives: 'true',
+  });
   if (heading != null) params.set('bearings', `${Math.round(heading)},60;`);
 
   const res = await fetch(`${URL_BASE}${coords}?${params}`, { signal: ctrl.signal });
@@ -65,11 +73,12 @@ export async function fetchRoute(from: LngLat, to: LngLat, heading?: number | nu
     );
   }
 
-  const r = data.routes[0];
-  return {
-    coords: r.geometry.coordinates,
-    distance: r.distance,
-    duration: r.duration,
-    steps: r.legs[0].steps,
-  };
+  return (data.routes as Array<{ geometry: { coordinates: LngLat[] }; distance: number; duration: number; legs: Array<{ steps: OsrmStep[] }> }>).map(
+    (r) => ({
+      coords: r.geometry.coordinates,
+      distance: r.distance,
+      duration: r.duration,
+      steps: r.legs[0].steps,
+    }),
+  );
 }

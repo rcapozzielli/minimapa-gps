@@ -56,7 +56,8 @@ setupUpdatePrompt(ui);
 onLongPress(map, (lngLat) => {
   if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
 });
-startRouting((route) => showRouteOverview(map, route.coords));
+// Rotas prontas: enquadra todas as opções (a escolhida e as alternativas).
+startRouting((routes) => showRouteOverview(map, routes.flatMap((r) => r.coords)));
 setupNavigator(() => {
   toast(ui, 'Você chegou ao destino!', 'info');
   setState({ destination: null });
