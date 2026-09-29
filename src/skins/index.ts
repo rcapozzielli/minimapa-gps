@@ -133,6 +133,118 @@ const RDR: Skin = {
   pinAnchor: 'center',
 };
 
+// ---------- Minecraft ----------
+
+/**
+ * Desenho em grade de pixels. Cada string é uma linha; cada letra, um pixel com a cor de
+ * `palette` ('.' = vazio). Um contorno preto de 1 pixel é gerado sozinho em volta de tudo
+ * (inclusive nas diagonais), como o contorno dos ícones do jogo. Devolve os <rect> (um por
+ * sequência de pixels iguais na linha) e o tamanho total, já contando o contorno.
+ */
+function pixelArt(rows: string[], palette: Record<string, string>, cell: number) {
+  const h = rows.length + 2;
+  const w = Math.max(...rows.map((r) => r.length)) + 2;
+  const at = (x: number, y: number) => rows[y - 1]?.[x - 1] ?? '.';
+  const grid: string[][] = [];
+  for (let y = 0; y < h; y++) {
+    grid.push([]);
+    for (let x = 0; x < w; x++) {
+      let c = at(x, y);
+      if (c === '.') {
+        // vazio encostado (em 8 direções) em algum pixel pintado vira contorno
+        const touches = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => at(x + dx, y + dy) !== '.'));
+        if (touches) c = '#';
+      }
+      grid[y].push(c);
+    }
+  }
+  const colors: Record<string, string> = { ...palette, '#': '#000' };
+  let rects = '';
+  grid.forEach((row, y) => {
+    for (let x = 0; x < w; ) {
+      const c = row[x];
+      let run = 1;
+      while (row[x + run] === c) run++;
+      if (c !== '.') {
+        rects += `<rect x="${x * cell}" y="${y * cell}" width="${run * cell}" height="${cell}" fill="${colors[c]}"/>`;
+      }
+      x += run;
+    }
+  });
+  return { rects, width: w * cell, height: h * cell };
+}
+
+// Jogador: marcador branco pixelado, como o do item "mapa" (desenho nosso), com a face
+// direita cinza para dar volume. 9×10 pixels com o contorno, 4 px cada.
+const MC_PLAYER = pixelArt(
+  [
+    '...W...',
+    '..WWW..',
+    '..WWW..',
+    '.WWWWG.',
+    '.WWWWG.',
+    'WWWWWGG',
+    'WWW.WGG',
+    'WW...GG',
+  ],
+  { W: 'var(--ui-player-fill)', G: '#bdbdbd' },
+  4,
+);
+
+// Destino: estandarte vermelho pixelado (desenho nosso): travessa e mastro de madeira,
+// pano vermelho com um losango dourado e a barra franjada mais escura.
+const MC_BANNER = pixelArt(
+  [
+    '....B....',
+    'BBBBBBBBB',
+    '.RRRRRRR.',
+    '.RRRYRRR.',
+    '.RRYYYRR.',
+    '.RRRYRRR.',
+    '.RRRRRRR.',
+    '.RRRRRRR.',
+    '.DRRRRRD.',
+    '.DDRRRDD.',
+    '.DD.D.DD.',
+    '....B....',
+    '....B....',
+    '....B....',
+  ],
+  { B: '#8a6236', R: '#b02e26', D: '#7c1f1a', Y: '#f2c33a' },
+  3,
+);
+
+const MC: Skin = {
+  player: `
+<svg viewBox="-4 -4 ${MC_PLAYER.width + 8} ${MC_PLAYER.height + 8}" width="${MC_PLAYER.width + 8}"
+     height="${MC_PLAYER.height + 8}" shape-rendering="crispEdges" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-mc-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="${MC_PLAYER.width / 2}" cy="${MC_PLAYER.height / 2 + 2}" rx="${MC_PLAYER.width / 2 + 2}"
+           ry="${MC_PLAYER.height / 2}" fill="url(#sk-mc-shadow)" shape-rendering="auto"/>
+  ${MC_PLAYER.rects}
+</svg>`,
+  // Âncora 'bottom': a base do mastro fica sobre o local (a sombra passa um pouco da borda).
+  pin: `
+<svg viewBox="0 0 ${MC_BANNER.width} ${MC_BANNER.height}" width="${MC_BANNER.width}"
+     height="${MC_BANNER.height}" shape-rendering="crispEdges" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-mc-pin-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="${MC_BANNER.width / 2}" cy="${MC_BANNER.height - 2}" rx="10" ry="4"
+           fill="url(#sk-mc-pin-shadow)" shape-rendering="auto"/>
+  ${MC_BANNER.rects}
+</svg>`,
+  pinAnchor: 'bottom',
+};
+
 // ---------- San Andreas ----------
 // Jogador: seta branca "chapada" com contorno preto grosso e cantos vivos, como a seta do
 // radar do SA. Destino: blip quadrado vermelho de contorno preto (âncora no centro).
@@ -173,7 +285,7 @@ const SKINS: Record<string, Skin> = {
   gta: GTA, // Los Santos (GTA V)
   sa: SA, // San Andreas (GTA SA)
   rdr: RDR, // Red Dead
-  mc: { ...DEFAULT }, // Minecraft
+  mc: MC, // Minecraft
   zelda: { ...DEFAULT }, // Hyrule (Zelda BotW)
 };
 

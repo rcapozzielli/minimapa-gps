@@ -1,6 +1,125 @@
 /* Skin "mc": Minecraft.
-   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-mc
-   e, se preciso, faz overrides pontuais escopados por .skin-mc.
-   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
-.skin-mc {
+   Interface como as telas do jogo (arte própria, só fontes livres):
+   - painéis cinza-claros com "bevel" de pixel (luz em cima/esquerda, sombra em
+     baixo/direita), contorno preto e cantos com um "dente" de pixel (clip-path);
+   - botões cinza-escuros de texto branco com sombra, como os botões dos menus;
+     botão secundário afundado como um slot do inventário;
+   - Pixelify Sans (fonte pixelada livre) e ícones de manobra com cantos quadrados.
+   Cores (--ui-bg, --ui-fg, --ui-accent...) vêm do MINECRAFT_META em src/map/themes.ts.
+   `:root.skin-mc` ganha do :root de base.css sem depender da ordem do CSS. */
+:root.skin-mc {
+  --mc-px: 3px; /* tamanho do "pixel" da interface */
+  --mc-dent: polygon(
+    var(--mc-px) 0, calc(100% - var(--mc-px)) 0, calc(100% - var(--mc-px)) var(--mc-px),
+    100% var(--mc-px), 100% calc(100% - var(--mc-px)), calc(100% - var(--mc-px)) calc(100% - var(--mc-px)),
+    calc(100% - var(--mc-px)) 100%, var(--mc-px) 100%, var(--mc-px) calc(100% - var(--mc-px)),
+    0 calc(100% - var(--mc-px)), 0 var(--mc-px), var(--mc-px) var(--mc-px)
+  );
+  --mc-btn: #6f6f6f;
+  --mc-btn-light: #a9a9a9;
+  --mc-btn-dark: #4a4a4a;
+  --mc-text-shadow: 2px 2px 0 #3f3f3f;
+
+  --ui-panel-bg: var(--ui-bg);
+  --ui-font-display: 'Pixelify Sans', 'Courier New', monospace;
+  --ui-radius: 0px;
+  --ui-radius-btn: 0px;
+  --ui-border: var(--mc-px) solid #000;
+  --ui-shadow: inset var(--mc-px) var(--mc-px) 0 #ffffff, inset calc(-1 * var(--mc-px)) calc(-1 * var(--mc-px)) 0 #555555;
+  --ui-clip: var(--mc-dent);
+  --ui-divider: rgba(0, 0, 0, 0.22);
+}
+
+.skin-mc #ui {
+  letter-spacing: 0.02em;
+}
+
+/* Painel de manobra: contorno preto inteiro (sem a barra lateral colorida). */
+.skin-mc .maneuver {
+  border-left: var(--ui-border);
+}
+.skin-mc .maneuver-dist,
+.skin-mc .trip-time {
+  font-weight: 700;
+}
+/* Ícones de manobra "de pixel": pontas e dobras quadradas, sem suavização. */
+.skin-mc .maneuver-icon svg {
+  shape-rendering: crispEdges;
+}
+.skin-mc .maneuver-icon svg * {
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Item tocado da lista: realce branco translúcido, como passar o mouse num slot. */
+.skin-mc .search-results li:active {
+  background: rgba(255, 255, 255, 0.55);
+}
+.skin-mc .search-clear {
+  border-radius: 0;
+}
+
+/* Botões flutuantes = botões dos menus do jogo. */
+.skin-mc .fab {
+  border: 2px solid #000;
+  background: var(--mc-btn);
+  color: #ffffff;
+  text-shadow: var(--mc-text-shadow);
+  box-shadow: inset 2px 2px 0 var(--mc-btn-light), inset -2px -3px 0 var(--mc-btn-dark);
+  clip-path: var(--mc-dent);
+  font-weight: 700;
+}
+.skin-mc .fab svg {
+  filter: drop-shadow(2px 2px 0 #3f3f3f);
+}
+.skin-mc .fab:active {
+  transform: none;
+  background: #5c6699; /* o azul-lilás do botão selecionado */
+}
+.skin-mc .fab-sim {
+  background: #7a5a00;
+}
+
+/* Botão principal: botão verde com o mesmo bevel. */
+.skin-mc .btn-primary,
+.skin-mc .trip-start,
+.skin-mc .update button {
+  border: 2px solid #000;
+  border-radius: 0;
+  font-family: var(--ui-font-display);
+  font-weight: 700;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.35), inset -2px -3px 0 rgba(0, 0, 0, 0.35);
+  clip-path: var(--mc-dent);
+}
+/* Botão secundário: "slot" afundado do inventário (bevel invertido). */
+.skin-mc .btn-secondary,
+.skin-mc .trip-cancel {
+  border-radius: 0;
+  background: #8b8b8b;
+  color: #1e1e1e;
+  box-shadow: inset 3px 3px 0 #373737, inset -3px -3px 0 #ffffff;
+}
+.skin-mc .btn-primary:active,
+.skin-mc .btn-secondary:active,
+.skin-mc .trip-start:active {
+  transform: none;
+  filter: brightness(1.12);
+}
+
+.skin-mc .toast {
+  border: var(--ui-border);
+  border-radius: 0;
+  clip-path: var(--mc-dent);
+}
+.skin-mc .toast-info {
+  font-weight: 700;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Alça da folha: um traço de pixels. */
+.skin-mc .sheet-handle::before {
+  border-radius: 0;
+  height: 4px;
+  width: 36px;
 }

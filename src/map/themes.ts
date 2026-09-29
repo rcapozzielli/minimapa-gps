@@ -59,13 +59,16 @@ const MINECRAFT_META: ThemeMeta = {
   label: 'Minecraft',
   skin: 'mc',
   route: { color: '#ff2a1a', casing: '#3d0500', glow: '#ff6a4d' }, // "redstone"
+  // Painéis cinza-claros como o inventário do jogo, com texto cinza-escuro (contraste 6:1).
+  // O verde de destaque é escuro o bastante para texto branco por cima (6,5:1).
   ui: {
-    bg: 'rgba(28, 28, 28, 0.92)',
-    fg: '#ffffff',
-    accent: '#5b9c3a',
+    bg: '#c6c6c6',
+    fg: '#373737',
+    accent: '#2f6b1f',
+    'accent-fg': '#ffffff',
     'player-fill': '#ffffff',
     'player-stroke': '#000000',
-    font: "'Courier New', ui-monospace, monospace",
+    font: "'Pixelify Sans', 'Courier New', ui-monospace, monospace",
   },
 };
 
@@ -107,7 +110,7 @@ export const THEMES: ThemeInfo[] = [
     land: '#7fb238',
     road: '#8f8f8f',
     route: '#ff2a1a',
-    accent: '#5b9c3a',
+    accent: '#2f6b1f',
   }, minecraftEnter),
   sickmapsTheme('gta-sa', SA_META, {
     land: '#2a3024',
