@@ -3,7 +3,7 @@
 Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA na vida real").
 É um PWA feito com Vite + TypeScript + MapLibre GL JS, gratuito e sem chave de API.
 
-**No ar:** https://USUARIO.github.io/minimapa-gps/ (instale na tela inicial do celular)
+**No ar:** https://rcapozzielli.github.io/minimapa-gps/ (instale na tela inicial do celular)
 
 ## O que ele faz
 
