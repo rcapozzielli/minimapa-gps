@@ -22,7 +22,14 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
 - Vanilla TypeScript, sem framework. Os módulos não se chamam entre si: reagem ao estado global
   em `src/state.ts` (`setState` / `subscribe`). Para uma funcionalidade nova, siga esse padrão.
 - Temas: `src/map/themes.ts`. Há temas JSON (`public/styles/*.json`) e temas gerados pelo
-  sickmaps (Minecraft). Cores da rota e da UI ficam em `metadata.minimapa` de cada estilo.
+  sickmaps (Minecraft, San Andreas). Cores da rota e da UI ficam em `metadata.minimapa` de cada
+  estilo.
+- Skins (a "cara de jogo" da interface): `metadata.minimapa.skin` → classe `skin-<id>` no
+  `<html>` + `src/skins/<id>.css` + SVGs do jogador/destino em `src/skins/index.ts`. Componentes
+  desenham caixas só com as variáveis de forma de `src/styles/base.css`; uma skin redefine essas
+  variáveis em `:root.skin-<id>` (não `.skin-<id>`, que empata com o `:root` e depende da ordem).
+- Fontes de jogo (Fontsource, OFL) só na interface. Os rótulos do mapa usam os `glyphs` da
+  OpenFreeMap: o estilo aceita uma única URL de glyphs, e trocar exigiria hospedar PBFs.
 
 ## Armadilhas já resolvidas (não desfaça sem entender)
 
@@ -39,6 +46,15 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   precisa ser desfeito no teardown (pixelRatio, listeners, classes CSS).
 - **Câmera no modo seguir:** o zoom-alvo fica em `followZoom`. Ler `map.getZoom()` congelava o
   zoom quando uma animação era interrompida pela próxima leitura do GPS.
+- **Toques no mapa:** `#ui` tem `pointer-events: none` e liga os filhos com
+  `:where(#ui) > *` (especificidade zero). Com `#ui > *` puro, contêineres de layout
+  (`.top-stack`, `.bottom-stack`, folha fechada) não conseguem desligar e engolem toques no mapa.
+- **Skins com `clip-path`** (Zelda, Minecraft) cortam `outline` e sombra externa: o foco
+  visível é um `box-shadow: inset`. `--ui-panel-bg` pode ser uma pilha de gradientes: use
+  sempre `background:`, nunca `background-color:`.
+- **Recálculo de rota:** logo após um `reroute`, `nav` ainda é o da rota antiga (o navegador o
+  recalcula no mesmo `setState`, depois). Quem lê `route.steps[nav.stepIndex]` precisa tolerar
+  índice inexistente; uma exceção num ouvinte interrompe os seguintes.
 - **Base path:** o `vite.config.ts` lê `BASE_PATH` (o workflow usa `/minimapa-gps/`). Caminhos
   de arquivos em `public/` no código devem usar `import.meta.env.BASE_URL`.
 
@@ -51,6 +67,10 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   ferramentas de edição, não com PowerShell. Mensagens de commit com aspas: faça pelo Bash
   (`git commit -F - <<'EOF'`).
 - GitHub CLI instalado em `C:\Program Files\GitHub CLI\gh.exe` (conta `rcapozzielli`).
+- **Worktrees para agentes em paralelo:** o `isolation: "worktree"` automático falha aqui
+  (o git vê `Desktop`, a sessão vê `desktop`). Crie à mão, FORA do repo (o Vite do `npm run dev`
+  observa `.claude/worktrees/` e fica recarregando):
+  `git worktree add -b agente-x ../minimapa-gps-wt/x main`, e rode `npm ci` em cada um.
 - TypeScript 7 verifica imports só de efeito colateral: CSS de pacote sem extensão `.css`
   precisa de declaração em `src/modules.d.ts`.
 
@@ -68,3 +88,10 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   trocas de tema parecem "travar" até algo forçar renderização (um screenshot resolve).
   Medir FPS ali não funciona. As coordenadas dos screenshots às vezes não batem com a página:
   prefira acionar botões pelo DOM (`element.click()`).
+  - O Chrome controlado bloqueia o certificado autoassinado do `:5173`. Para testes
+    automatizados, suba uma cópia em HTTP (localhost dispensa HTTPS para o GPS) com um config
+    que reusa o `vite.config.ts` sem o plugin `basicSsl`, na porta 5174.
+  - O redimensionamento da janela é ignorado: para larguras de celular, carregue o app num
+    `<iframe>` de 320–430 px e meça pelo `contentDocument`.
+  - O OSRM de demonstração quase nunca devolve rotas alternativas: para testar a interface
+    delas, injete uma segunda rota no estado (`setState({ routes: [r, alt] })`).
