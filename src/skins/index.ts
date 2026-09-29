@@ -57,6 +57,41 @@ const DEFAULT: Skin = {
   pinAnchor: 'bottom',
 };
 
+// ---------- Los Santos (GTA V) ----------
+// Jogador: seta branca do radar, com a metade direita num cinza claro (dá volume, como se
+// a luz viesse da esquerda) e contorno escuro. Destino: blip redondo magenta de aro branco
+// (o "waypoint"), com um losango branco no meio; âncora no centro.
+const GTA: Skin = {
+  player: `
+<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-gta-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="20" cy="22" rx="15" ry="13" fill="url(#sk-gta-shadow)"/>
+  <path d="M20 3 L34 35 L20 28 L6 35 Z" fill="var(--ui-player-fill)" stroke="var(--ui-player-stroke)"
+        stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M20 5.5 L32.2 33.2 L20 27 Z" fill="#000" fill-opacity=".16"/>
+</svg>`,
+  pin: `
+<svg viewBox="-4 -4 44 44" width="44" height="44" aria-hidden="true">
+  <defs>
+    <radialGradient id="sk-gta-pin-shadow">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="18" cy="20" rx="17" ry="15" fill="url(#sk-gta-pin-shadow)"/>
+  <circle cx="18" cy="18" r="14" fill="#1a1c1e"/>
+  <circle cx="18" cy="18" r="12" fill="#ffffff"/>
+  <circle cx="18" cy="18" r="9.5" fill="var(--ui-accent)"/>
+  <path d="M18 12 L24 18 L18 24 L12 18 Z" fill="#ffffff"/>
+</svg>`,
+  pinAnchor: 'center',
+};
+
 // ---------- San Andreas ----------
 // Jogador: seta branca "chapada" com contorno preto grosso e cantos vivos, como a seta do
 // radar do SA. Destino: blip quadrado vermelho de contorno preto (âncora no centro).
@@ -94,7 +129,7 @@ const SA: Skin = {
  * (ex.: `gta: { ...DEFAULT, player: '<svg ...>' }`).
  */
 const SKINS: Record<string, Skin> = {
-  gta: { ...DEFAULT }, // Los Santos (GTA V)
+  gta: GTA, // Los Santos (GTA V)
   sa: SA, // San Andreas (GTA SA)
   rdr: { ...DEFAULT }, // Red Dead
   mc: { ...DEFAULT }, // Minecraft
