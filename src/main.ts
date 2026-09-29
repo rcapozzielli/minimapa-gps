@@ -2,6 +2,7 @@
 import './styles.css';
 import { getState, setState, subscribe } from './state';
 import { createMap } from './map/map';
+import { getSavedThemeId, nextThemeId, setTheme, themeLabel } from './map/themes';
 import { createPlayer } from './map/player';
 import { setupCamera, showRouteOverview } from './map/camera';
 import { setupRouteLayer } from './map/routeLayer';
@@ -17,7 +18,7 @@ import { createManeuverPanel } from './ui/maneuverPanel';
 import { createTripInfo } from './ui/tripInfo';
 
 const ui = document.getElementById('ui')!;
-const map = createMap('map', 'los-santos');
+const map = createMap('map');
 
 createPlayer(map);
 setupCamera(map);
@@ -30,7 +31,13 @@ createManeuverPanel(ui);
 const bottom = document.createElement('div');
 bottom.className = 'bottom-stack';
 ui.append(bottom);
-const fabRow = createButtons(bottom);
+const fabRow = createButtons(bottom, () => {
+  const id = nextThemeId();
+  setTheme(map, id).then(
+    () => toast(ui, themeLabel(id), 'info', 1500),
+    () => toast(ui, `Não consegui carregar o tema ${themeLabel(id)}.`),
+  );
+});
 createTripInfo(bottom);
 
 // A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
@@ -47,5 +54,12 @@ setupNavigator(() => {
   toast(ui, 'Você chegou ao destino!', 'info');
   setState({ destination: null });
 });
-if (isSimulation()) startSimulator(fabRow);
+if (isSimulation()) {
+  startSimulator(fabRow);
+  // Para depurar no console do navegador (só no modo simulação): minimapa.map, minimapa.getState()
+  Object.assign(window, { minimapa: { map, getState } });
+}
 startLocation((msg) => toast(ui, msg));
+
+// Tema salvo da última vez (ou o padrão). Se falhar, cai no primeiro tema da lista.
+setTheme(map, getSavedThemeId()).catch(() => setTheme(map, 'los-santos'));

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iantroisi/sickmaps": "^0.1.1",
     "maplibre-gl": "^6.11.2"
   },
   "devDependencies": {

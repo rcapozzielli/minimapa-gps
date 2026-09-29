@@ -39,8 +39,15 @@ export function setupRouteLayer(map: maplibregl.Map): void {
 
 function addLayers(map: maplibregl.Map): void {
   const { route: c } = getThemeMeta();
-  // A rota fica abaixo dos rótulos (primeira camada de texto) para os nomes das ruas continuarem legíveis.
-  const beforeId = map.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+  // A rota fica acima de toda a geometria (ruas, prédios) e abaixo dos rótulos que vêm
+  // depois dela, para os nomes das ruas continuarem legíveis. Não basta "antes do primeiro
+  // rótulo": alguns estilos (ex.: o dark usado pelo sickmaps) têm rótulos no meio da lista.
+  const layers = map.getStyle().layers;
+  let lastGeometry = -1;
+  layers.forEach((l, i) => {
+    if (l.type !== 'symbol') lastGeometry = i;
+  });
+  const beforeId = layers[lastGeometry + 1]?.id;
 
   map.addSource(SOURCE, { type: 'geojson', data: EMPTY });
   const common = { type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' } } as const;
