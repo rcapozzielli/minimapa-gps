@@ -2,3 +2,10 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# Referências dos jogos: capturas de tela com direitos de terceiros. Ficam só na máquina
+# (o repositório é público). Entram no git só os scripts, as paletas medidas e os prints do app.
+referencias/*.png
+referencias/*.jpg
+referencias/paletas/
+referencias/comparacao/

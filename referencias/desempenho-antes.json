@@ -1,0 +1,42 @@
+{
+  "los-santos": {
+    "media_ms": 46.2,
+    "p95_ms": 66.7,
+    "acima_50ms_pct": 19.2,
+    "requisicoes": 48,
+    "kb": 658.4,
+    "rodadas": 3
+  },
+  "red-dead": {
+    "media_ms": 72.9,
+    "p95_ms": 166.7,
+    "acima_50ms_pct": 43.7,
+    "requisicoes": 38,
+    "kb": 0.0,
+    "rodadas": 3
+  },
+  "minecraft": {
+    "media_ms": 89.0,
+    "p95_ms": 133.3,
+    "acima_50ms_pct": 89.3,
+    "requisicoes": 47,
+    "kb": 0.0,
+    "rodadas": 3
+  },
+  "gta-sa": {
+    "media_ms": 100.4,
+    "p95_ms": 166.6,
+    "acima_50ms_pct": 89.5,
+    "requisicoes": 57,
+    "kb": 0.0,
+    "rodadas": 3
+  },
+  "hyrule": {
+    "media_ms": 55.8,
+    "p95_ms": 100,
+    "acima_50ms_pct": 43.3,
+    "requisicoes": 47,
+    "kb": 0.0,
+    "rodadas": 3
+  }
+}
