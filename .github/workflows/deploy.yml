@@ -1,0 +1,54 @@
+# Publica o app no GitHub Pages a cada push na branch main.
+# Também dá para rodar manualmente: aba "Actions" → "Deploy no GitHub Pages" → "Run workflow".
+name: Deploy no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissões mínimas que o deploy no Pages precisa.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Se dois pushes chegarem juntos, só o mais recente é publicado.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # O app fica em https://<usuario>.github.io/<repositorio>/, então o build
+      # precisa saber o nome da subpasta (ver "base" em vite.config.ts).
+      - run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

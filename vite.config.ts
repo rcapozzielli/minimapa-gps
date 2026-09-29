@@ -1,8 +1,12 @@
+/// <reference types="node" />
 import { defineConfig } from 'vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // Subpasta onde o app é publicado. No GitHub Pages fica em usuario.github.io/minimapa-gps/,
+  // então o workflow de deploy define BASE_PATH=/minimapa-gps/. Localmente é a raiz.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [
     // Certificado autoassinado: geolocalização só funciona em HTTPS (ou localhost).
     basicSsl(),

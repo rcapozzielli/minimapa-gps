@@ -1,0 +1,5 @@
+# Guarda os arquivos de texto com quebra de linha LF no repositório (padrão do Linux,
+# usado pelo GitHub Actions), independentemente do sistema de quem fez o commit.
+* text=auto eol=lf
+*.png binary
+*.ico binary
