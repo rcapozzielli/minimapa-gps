@@ -5,6 +5,9 @@ import type { Route } from './services/osrm';
 
 export type LngLat = [number, number];
 
+/** Folhas de baixo do app: prévia da rota, seletor de temas, chegada. */
+export type SheetId = 'route' | 'themes' | 'arrived';
+
 export interface Destination {
   lngLat: LngLat;
   label: string;
@@ -26,8 +29,13 @@ export interface NavProgress {
 export interface AppState {
   /** Para onde vamos (da busca ou de um toque longo), ou null. */
   destination: Destination | null;
-  /** Rota calculada até o destino. */
+  /** Rota escolhida até o destino (é a que a navegação segue). */
   route: Route | null;
+  /** Todas as opções de rota calculadas (a principal + alternativas); route === routes[routeIndex]. */
+  routes: Route[];
+  routeIndex: number;
+  /** Qual folha de baixo está aberta (ver src/ui/sheet.ts), ou null. */
+  sheet: SheetId | null;
   routeLoading: boolean;
   routeError: string | null;
   /** Navegação passo a passo ligada? (depois de tocar em "Iniciar") */
@@ -54,6 +62,9 @@ type Listener = (state: AppState, changed: Partial<AppState>) => void;
 const state: AppState = {
   destination: null,
   route: null,
+  routes: [],
+  routeIndex: 0,
+  sheet: null,
   routeLoading: false,
   routeError: null,
   navigating: false,

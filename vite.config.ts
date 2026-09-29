@@ -32,10 +32,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Guarda só o "casco" do app (HTML, JS, CSS, ícones, temas JSON). Tiles, rotas
+        // Guarda só o "casco" do app (HTML, JS, CSS, fontes, ícones, temas JSON). Tiles, rotas
         // e buscas NÃO vão para o cache: sempre vêm da rede, para não abusar dos
         // serviços públicos (e mapa/rotas velhos não fariam sentido num GPS).
-        globPatterns: ['**/*.{html,js,css,svg,png,ico,json,txt}'],
+        globPatterns: ['**/*.{html,js,css,woff2,svg,png,ico,json,txt}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // o JS do MapLibre tem ~1 MB
       },
     }),

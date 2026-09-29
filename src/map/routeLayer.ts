@@ -4,16 +4,10 @@
 import * as maplibregl from 'maplibre-gl';
 import { getState, subscribe } from '../state';
 import { getThemeMeta, onThemeApplied } from './themes';
+import { getSkin } from '../skins';
 
 const SOURCE = 'route';
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
-
-const PIN_SVG = `
-<svg viewBox="0 0 36 48" width="36" height="48" aria-hidden="true">
-  <path d="M18 2C9.2 2 2 9 2 17.7 2 29.5 18 46 18 46s16-16.5 16-28.3C34 9 26.8 2 18 2z"
-        fill="var(--ui-accent)" stroke="#000" stroke-opacity=".6" stroke-width="2"/>
-  <circle cx="18" cy="18" r="6" fill="#fff"/>
-</svg>`;
 
 /** Largura da linha conforme o zoom; `extra` engrossa para contorno/brilho. */
 function width(extra: number): maplibregl.ExpressionSpecification {
@@ -21,20 +15,34 @@ function width(extra: number): maplibregl.ExpressionSpecification {
 }
 
 export function setupRouteLayer(map: maplibregl.Map): void {
-  const pinEl = document.createElement('div');
-  pinEl.className = 'waypoint';
-  pinEl.innerHTML = PIN_SVG;
-  const pin = new maplibregl.Marker({ element: pinEl, anchor: 'bottom' });
+  // Pino do destino: desenho e ponto de ancoragem vêm da skin do tema. O Marker não
+  // troca de âncora depois de criado, então a cada tema criamos um novo.
+  let pin = createPin(getThemeMeta().skin);
+  const showPin = () => {
+    const { destination } = getState();
+    if (destination) pin.setLngLat(destination.lngLat).addTo(map);
+    else pin.remove();
+  };
 
-  onThemeApplied(() => addLayers(map));
-
-  subscribe((s, changed) => {
-    if ('route' in changed || 'nav' in changed) updateData(map);
-    if ('destination' in changed) {
-      if (s.destination) pin.setLngLat(s.destination.lngLat).addTo(map);
-      else pin.remove();
-    }
+  onThemeApplied((meta) => {
+    addLayers(map);
+    pin.remove();
+    pin = createPin(meta.skin);
+    showPin();
   });
+
+  subscribe((_s, changed) => {
+    if ('route' in changed || 'nav' in changed) updateData(map);
+    if ('destination' in changed) showPin();
+  });
+}
+
+function createPin(skinId: string | undefined): maplibregl.Marker {
+  const skin = getSkin(skinId);
+  const el = document.createElement('div');
+  el.className = 'waypoint';
+  el.innerHTML = skin.pin;
+  return new maplibregl.Marker({ element: el, anchor: skin.pinAnchor });
 }
 
 function addLayers(map: maplibregl.Map): void {

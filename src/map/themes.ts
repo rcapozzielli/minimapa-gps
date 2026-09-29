@@ -28,11 +28,26 @@ export interface ThemeMeta {
   ui: Record<string, string>;
   /** Classe CSS extra no contêiner do mapa enquanto o tema estiver ativo (ex.: papel envelhecido). */
   containerClass?: string;
+  /** Skin da interface (fonte, forma dos painéis, ícones); ver src/skins/index.ts. */
+  skin?: string;
 }
 
-interface ThemeInfo {
+/** Cores para desenhar a miniatura do tema no seletor, sem precisar baixar o estilo. */
+export interface ThemePreview {
+  /** Cor do "chão" do mapa. */
+  land: string;
+  /** Cor das ruas. */
+  road: string;
+  /** Cor da rota. */
+  route: string;
+  /** Cor de destaque da interface. */
+  accent: string;
+}
+
+export interface ThemeInfo {
   id: string;
   label: string;
+  preview: ThemePreview;
   /** Monta o estilo MapLibre completo do tema. */
   load: () => Promise<maplibregl.StyleSpecification>;
   /** Liga efeitos extras depois do setStyle; devolve a função que os desfaz. */
@@ -42,6 +57,7 @@ interface ThemeInfo {
 // Cores da rota e da interface para os temas do sickmaps (que não trazem as nossas).
 const MINECRAFT_META: ThemeMeta = {
   label: 'Minecraft',
+  skin: 'mc',
   route: { color: '#ff2a1a', casing: '#3d0500', glow: '#ff6a4d' }, // "redstone"
   ui: {
     bg: 'rgba(28, 28, 28, 0.92)',
@@ -55,11 +71,27 @@ const MINECRAFT_META: ThemeMeta = {
 
 /** Para adicionar um tema: crie o JSON em public/styles/ (ou use um tema do sickmaps) e registre aqui. */
 export const THEMES: ThemeInfo[] = [
-  jsonTheme('los-santos', 'Los Santos', 'los-santos.json'),
-  jsonTheme('red-dead', 'Red Dead', 'red-dead.json'),
-  sickmapsTheme('minecraft', MINECRAFT_META, minecraftEnter),
+  jsonTheme('los-santos', 'Los Santos', 'los-santos.json', {
+    land: '#2f3336',
+    road: '#cdd0d2',
+    route: '#c93fe0',
+    accent: '#c93fe0',
+  }),
+  jsonTheme('red-dead', 'Red Dead', 'red-dead.json', {
+    land: '#dec29b',
+    road: '#5a4a3a',
+    route: '#9e1b1b',
+    accent: '#b22a22',
+  }),
+  // (cores literais: MC_MAP só é definido mais abaixo no arquivo)
+  sickmapsTheme('minecraft', MINECRAFT_META, {
+    land: '#7fb238',
+    road: '#8f8f8f',
+    route: '#ff2a1a',
+    accent: '#5b9c3a',
+  }, minecraftEnter),
   // Outros temas do sickmaps entram numa linha, ex.:
-  // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }),
+  // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }, { ...cores }),
 ];
 
 const DEFAULT_META: ThemeMeta = {
@@ -71,18 +103,20 @@ const STORAGE_KEY = 'minimapa:theme';
 
 let currentMeta: ThemeMeta = DEFAULT_META;
 let appliedUiKeys: string[] = [];
+let appliedSkinClass: string | null = null;
 let current: { id: string; teardown: () => void } | null = null;
 let switchToken = 0;
 const appliedListeners: Array<(meta: ThemeMeta) => void> = [];
 
 // ---------- Tipos de tema ----------
 
-function jsonTheme(id: string, label: string, file: string): ThemeInfo {
+function jsonTheme(id: string, label: string, file: string, preview: ThemePreview): ThemeInfo {
   // BASE_URL cobre o caso de o app ser publicado numa subpasta (GitHub Pages).
   const url = `${import.meta.env.BASE_URL}styles/${file}`;
   return {
     id,
     label,
+    preview,
     load: cached(async () => {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Tema ${label}: ${res.status}`);
@@ -94,11 +128,13 @@ function jsonTheme(id: string, label: string, file: string): ThemeInfo {
 function sickmapsTheme(
   theme: GameMapTheme,
   meta: ThemeMeta,
+  preview: ThemePreview,
   extra?: (map: maplibregl.Map) => () => void,
 ): ThemeInfo {
   return {
     id: theme,
     label: meta.label,
+    preview,
     load: cached(async () => {
       const style = (await loadGameMapStyle(theme)) as maplibregl.StyleSpecification;
       if (theme === 'minecraft') tuneMinecraft(style);
@@ -278,6 +314,7 @@ export function bindThemes(map: maplibregl.Map): void {
       route: { ...DEFAULT_META.route, ...meta?.route },
     };
     applyUiVars(currentMeta.ui);
+    applySkinClass(currentMeta.skin);
     for (const fn of appliedListeners) fn(currentMeta);
   });
 }
@@ -318,4 +355,12 @@ function applyUiVars(ui: Record<string, string>): void {
   for (const key of appliedUiKeys) root.removeProperty(`--ui-${key}`);
   for (const [key, value] of Object.entries(ui)) root.setProperty(`--ui-${key}`, value);
   appliedUiKeys = Object.keys(ui);
+}
+
+/** Troca a classe `skin-<id>` do <html> (liga o CSS da skin; ver src/skins/). */
+function applySkinClass(skin: string | undefined): void {
+  const cl = document.documentElement.classList;
+  if (appliedSkinClass) cl.remove(appliedSkinClass);
+  appliedSkinClass = skin ? `skin-${skin}` : null;
+  if (appliedSkinClass) cl.add(appliedSkinClass);
 }

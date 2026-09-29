@@ -1,56 +1,21 @@
-/* Variáveis da interface. Estes são os valores padrão; cada tema sobrescreve
-   as --ui-* pelo bloco "metadata.minimapa.ui" do seu JSON (ver themes.ts). */
-:root {
-  --ui-bg: rgba(20, 22, 24, 0.88);
-  --ui-fg: #f2f2f2;
-  --ui-accent: #c040d8;
-  --ui-player-fill: #ffffff;
-  --ui-player-stroke: #1b1d1f;
-  --ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --gutter: 12px;
-  font-family: var(--ui-font);
-}
+/* Componentes da interface. Caixas usam só as variáveis de forma de base.css
+   (--ui-panel-bg, --ui-radius, --ui-border, --ui-shadow, --ui-clip), para as skins
+   conseguirem mudar tudo sem mexer aqui. */
 
-html,
-body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  background: #1b1d1f;
-  overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#map {
-  position: fixed;
-  inset: 0;
-}
-
-/* Camada de UI por cima do mapa; só os próprios controles recebem toques. */
-#ui {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  color: var(--ui-fg);
-}
-#ui > *,
-.bottom-stack > * {
-  pointer-events: auto;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-.player {
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
-}
-.waypoint {
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5));
+/* Caixa padrão: painéis, folhas, cartões. */
+.panel,
+.search-field,
+.search-results,
+.maneuver,
+.trip,
+.update,
+.sheet {
+  background: var(--ui-panel-bg);
+  border: var(--ui-border);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+  clip-path: var(--ui-clip);
+  box-sizing: border-box;
 }
 
 /* ---------- Busca (topo) ---------- */
@@ -66,11 +31,8 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 56px;
+  height: var(--tap);
   padding: 0 8px 0 16px;
-  border-radius: 16px;
-  background: var(--ui-bg);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
 }
 .search-field input {
@@ -108,22 +70,20 @@ body {
   margin: 8px 0 0;
   padding: 4px 0;
   max-height: 55vh;
+  max-height: 55dvh;
   overflow-y: auto;
-  border-radius: 16px;
-  background: var(--ui-bg);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 .search-results li {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 2px;
-  min-height: 56px;
+  min-height: var(--tap);
   padding: 6px 16px;
   cursor: pointer;
 }
 .search-results li + li {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--ui-divider);
 }
 .search-results li:active {
   background: rgba(255, 255, 255, 0.08);
@@ -156,11 +116,7 @@ body {
   gap: 14px;
   min-height: 96px;
   padding: 12px 18px 12px 14px;
-  box-sizing: border-box;
-  border-radius: 18px;
-  background: var(--ui-bg);
   border-left: 6px solid var(--ui-accent);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(6px);
 }
 .maneuver-icon {
@@ -175,6 +131,7 @@ body {
   min-width: 0;
 }
 .maneuver-dist {
+  font-family: var(--ui-font-display);
   font-size: 34px;
   font-weight: 800;
   line-height: 1;
@@ -215,18 +172,18 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
+  min-height: var(--tap);
   padding: 0 20px;
-  border: 0;
-  border-radius: 28px;
-  background: var(--ui-bg);
+  border: var(--ui-border);
+  border-radius: var(--ui-radius-btn);
+  background: var(--ui-panel-bg);
   color: var(--ui-fg);
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--ui-shadow);
   cursor: pointer;
 }
 .fab:active {
@@ -243,7 +200,7 @@ body {
 }
 .fab-round {
   justify-content: center;
-  width: 56px;
+  width: var(--tap);
   padding: 0;
 }
 .fab-sim {
@@ -257,9 +214,6 @@ body {
   gap: 12px;
   min-height: 72px;
   padding: 8px 8px 8px 20px;
-  border-radius: 18px;
-  background: var(--ui-bg);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
 }
 .trip-main {
@@ -267,6 +221,7 @@ body {
   min-width: 0;
 }
 .trip-time {
+  font-family: var(--ui-font-display);
   font-size: 24px;
   font-weight: 700;
   color: var(--ui-accent);
@@ -285,34 +240,41 @@ body {
 .trip-error .trip-sub {
   white-space: normal;
 }
+
+/* Botão de ação principal ("Iniciar") e secundário (✕). */
+.btn-primary,
 .trip-start {
   flex: none;
-  height: 56px;
+  height: var(--tap);
   padding: 0 22px;
   border: 0;
-  border-radius: 14px;
+  border-radius: calc(var(--ui-radius) - 2px);
   background: var(--ui-accent);
-  color: #fff;
-  font-family: inherit;
+  color: var(--ui-accent-fg);
+  font-family: var(--ui-font-display);
   font-size: 17px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   cursor: pointer;
 }
-.trip-start:active {
-  transform: scale(0.96);
-}
+.btn-secondary,
 .trip-cancel {
   flex: none;
-  width: 56px;
-  height: 56px;
+  min-width: var(--tap);
+  height: var(--tap);
   border: 0;
-  border-radius: 14px;
+  border-radius: calc(var(--ui-radius) - 2px);
   background: rgba(255, 255, 255, 0.1);
   color: inherit;
+  font: inherit;
   font-size: 22px;
   cursor: pointer;
+}
+.btn-primary:active,
+.btn-secondary:active,
+.trip-start:active {
+  transform: scale(0.96);
 }
 
 .toast {
@@ -329,6 +291,8 @@ body {
 }
 .toast-info {
   background: var(--ui-accent);
+  color: var(--ui-accent-fg);
+  font-family: var(--ui-font-display);
   font-size: 18px;
   font-weight: 700;
   text-transform: uppercase;
@@ -348,9 +312,6 @@ body {
   justify-content: space-between;
   gap: 12px;
   padding: 8px 8px 8px 16px;
-  border-radius: 14px;
-  background: var(--ui-bg);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   font-size: 15px;
 }
 .update button {
@@ -359,34 +320,61 @@ body {
   border: 0;
   border-radius: 10px;
   background: var(--ui-accent);
-  color: #fff;
+  color: var(--ui-accent-fg);
   font: inherit;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
 }
 
-/* ---------- Tema Red Dead: papel envelhecido ----------
-   Camada estática por cima do mapa (não recebe toques): bordas "queimadas" e um
-   leve granulado de papel. Sem mix-blend-mode, que custaria caro a cada quadro. */
-.theme-red-dead::after {
-  content: '';
+/* ---------- Folha de baixo (src/ui/sheet.ts) ----------
+   Estilo Google Maps: sobe de baixo, tem uma "alça" para arrastar e fechar.
+   Cantos de baixo retos (encosta na borda da tela). */
+.sheet {
   position: absolute;
-  inset: 0;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: 0;
+  max-width: 560px;
+  max-height: 80vh;
+  max-height: 80dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px calc(16px + var(--safe-bottom));
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  transform: translateY(0);
+  transition: transform 220ms ease-out;
+  touch-action: none; /* o arrasto da folha não vira rolagem da página */
+}
+.sheet.is-closed {
+  transform: translateY(110%);
   pointer-events: none;
-  box-shadow:
-    inset 0 0 90px rgba(92, 58, 24, 0.55),
-    inset 0 0 22px rgba(60, 36, 14, 0.5);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.55;
 }
-/* A atribuição do OSM continua legível por cima do efeito. */
-.theme-red-dead .maplibregl-ctrl-attrib {
-  background: rgba(222, 194, 155, 0.85);
+.sheet-handle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: 28px;
+  cursor: grab;
 }
-
-/* Atribuição do OSM acima da safe area inferior. */
-.maplibregl-ctrl-bottom-right {
-  margin-bottom: var(--safe-bottom);
-  margin-right: var(--safe-right);
+.sheet-handle::before {
+  content: '';
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: 0.35;
+}
+.sheet-title {
+  margin: 0 0 12px;
+  font-family: var(--ui-font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+.sheet-body {
+  min-height: 0;
+  overflow-y: auto;
+  touch-action: pan-y; /* dentro do conteúdo, rolar volta a funcionar */
 }

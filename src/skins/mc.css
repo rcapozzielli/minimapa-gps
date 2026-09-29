@@ -1,0 +1,6 @@
+/* Skin "mc": Minecraft.
+   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-mc
+   e, se preciso, faz overrides pontuais escopados por .skin-mc.
+   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
+.skin-mc {
+}

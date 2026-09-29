@@ -4,6 +4,7 @@
   "metadata": {
     "minimapa": {
       "label": "Red Dead",
+      "skin": "rdr",
       "containerClass": "theme-red-dead",
       "route": { "color": "#9e1b1b", "casing": "#2b1a12", "glow": "#c0392b" },
       "ui": {

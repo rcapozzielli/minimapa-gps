@@ -1,5 +1,8 @@
 // Ponto de entrada: cria o mapa e liga cada módulo ao estado global.
-import './styles.css';
+// CSS: fontes, variáveis/globais e componentes. O CSS de cada skin vem de src/skins/index.ts.
+import './styles/fonts.css';
+import './styles/base.css';
+import './styles/components.css';
 import { getState, setState, subscribe } from './state';
 import { createMap } from './map/map';
 import { getSavedThemeId, nextThemeId, setTheme, themeLabel } from './map/themes';

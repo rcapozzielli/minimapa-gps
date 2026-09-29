@@ -1,17 +1,18 @@
 // Marcador do jogador: uma seta em SVG que gira conforme a direção.
+// O desenho vem da skin do tema (src/skins/index.ts) e é trocado a cada tema aplicado.
 import * as maplibregl from 'maplibre-gl';
 import { subscribe } from '../state';
-
-const ARROW_SVG = `
-<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-  <path d="M20 3 L34 35 L20 27 L6 35 Z" fill="var(--ui-player-fill)" stroke="var(--ui-player-stroke)"
-        stroke-width="2.5" stroke-linejoin="round"/>
-</svg>`;
+import { getSkin } from '../skins';
+import { getThemeMeta, onThemeApplied } from './themes';
 
 export function createPlayer(map: maplibregl.Map): void {
   const el = document.createElement('div');
   el.className = 'player';
-  el.innerHTML = ARROW_SVG;
+  el.innerHTML = getSkin(getThemeMeta().skin).player;
+  // O Marker é um elemento DOM: o setStyle() não o apaga, basta trocar o desenho.
+  onThemeApplied((meta) => {
+    el.innerHTML = getSkin(meta.skin).player;
+  });
 
   // rotationAlignment 'map': a rotação é relativa ao norte do mapa,
   // então a seta continua certa mesmo com o mapa girado.

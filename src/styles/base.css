@@ -1,0 +1,94 @@
+/* Variáveis da interface e regras globais.
+ *
+ * O CONTRATO DAS SKINS: todo componente desenha a sua "caixa" só com estas variáveis.
+ * Uma skin (src/skins/<id>.css) muda a cara do app redefinindo-as dentro de
+ * `.skin-<id>`, e só quando não tiver jeito faz overrides pontuais.
+ *  - Cores (--ui-bg, --ui-fg, --ui-accent, --ui-player-*) e --ui-font vêm do bloco
+ *    "metadata.minimapa.ui" de cada estilo (ver themes.ts); os valores aqui são o padrão.
+ *  - Forma (--ui-radius*, --ui-border, --ui-shadow, --ui-clip) e --ui-font-display
+ *    são da skin.
+ */
+:root {
+  /* Cores (o tema sobrescreve) */
+  --ui-bg: rgba(20, 22, 24, 0.88);
+  --ui-fg: #f2f2f2;
+  --ui-accent: #c040d8;
+  --ui-accent-fg: #ffffff; /* texto por cima da cor de destaque (ex.: botão "Iniciar") */
+  --ui-player-fill: #ffffff;
+  --ui-player-stroke: #1b1d1f;
+  --ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Forma (a skin sobrescreve) */
+  --ui-panel-bg: var(--ui-bg); /* fundo de painéis, folhas e botões */
+  --ui-font-display: var(--ui-font); /* números grandes e títulos */
+  --ui-radius: 16px; /* painéis e folhas */
+  --ui-radius-btn: 28px; /* botões flutuantes e pílulas */
+  --ui-border: 0 solid transparent; /* borda dos painéis (shorthand de `border`) */
+  --ui-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --ui-clip: none; /* clip-path dos painéis (ex.: cantos chanfrados). Corta a sombra! */
+  --ui-divider: rgba(255, 255, 255, 0.08); /* linhas entre itens de lista */
+
+  /* Layout */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --gutter: 12px;
+  --tap: 56px; /* alvo de toque dos botões principais (dá para acertar dirigindo) */
+
+  font-family: var(--ui-font);
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1b1d1f;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#map {
+  position: fixed;
+  inset: 0;
+}
+
+/* Camada de UI por cima do mapa; só os próprios controles recebem toques. */
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ui-fg);
+}
+#ui > *,
+.bottom-stack > * {
+  pointer-events: auto;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Marcadores (SVG vindo da skin, ver src/skins/index.ts). A sombra de contato já vem
+   desenhada no SVG; aqui só um contorno suave para descolar do mapa. */
+.player svg,
+.waypoint svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Atribuição do OSM acima da safe area inferior. */
+.maplibregl-ctrl-bottom-right {
+  margin-bottom: var(--safe-bottom);
+  margin-right: var(--safe-right);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -4,6 +4,7 @@
   "metadata": {
     "minimapa": {
       "label": "Los Santos",
+      "skin": "gta",
       "route": { "color": "#c93fe0", "casing": "#3a0d45", "glow": "#e27bf2" },
       "ui": {
         "bg": "rgba(24, 26, 28, 0.9)",

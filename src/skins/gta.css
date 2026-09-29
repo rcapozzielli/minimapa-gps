@@ -1,0 +1,6 @@
+/* Skin "gta": Los Santos (GTA V).
+   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-gta
+   e, se preciso, faz overrides pontuais escopados por .skin-gta.
+   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
+.skin-gta {
+}

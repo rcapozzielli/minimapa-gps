@@ -10,11 +10,11 @@ export function startRouting(onNewRoute: (route: Route) => void): void {
     if ('destination' in changed) {
       if (!s.destination) {
         pending = false;
-        setState({ route: null, routeLoading: false, routeError: null });
+        setState({ route: null, routes: [], routeIndex: 0, routeLoading: false, routeError: null });
         return;
       }
       pending = true;
-      setState({ route: null, routeError: null, routeLoading: true });
+      setState({ route: null, routes: [], routeIndex: 0, routeError: null, routeLoading: true });
     }
     if (pending && s.position && s.destination) {
       pending = false;
@@ -40,7 +40,7 @@ export async function reroute(): Promise<boolean> {
   try {
     const route = await fetchRoute(position, destination.lngLat, movingHeading());
     if (getState().destination !== destination) return false;
-    setState({ route, rerouting: false });
+    setState({ route, routes: [route], routeIndex: 0, rerouting: false });
     return true;
   } catch {
     setState({ rerouting: false });
@@ -55,7 +55,7 @@ async function calculate(onNewRoute: (route: Route) => void): Promise<void> {
     const route = await fetchRoute(position, destination.lngLat, movingHeading());
     // O usuário pode ter trocado/cancelado o destino enquanto esperávamos.
     if (getState().destination !== destination) return;
-    setState({ route, routeLoading: false });
+    setState({ route, routes: [route], routeIndex: 0, routeLoading: false });
     onNewRoute(route);
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return;

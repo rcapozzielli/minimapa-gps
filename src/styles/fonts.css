@@ -1,0 +1,13 @@
+/* Fontes das skins (todas livres, licença OFL, empacotadas pelo Fontsource e servidas pelo
+   próprio app). Só o subconjunto "latin" (cobre á, ã, ç...). O navegador só baixa uma fonte
+   quando alguma regra CSS a usa, então listar todas aqui não pesa no carregamento.
+   Estas fontes são só da INTERFACE; os rótulos do mapa usam as fontes do "glyphs" do estilo. */
+@import '@fontsource/oswald/latin-400.css';
+@import '@fontsource/oswald/latin-600.css';
+@import '@fontsource/rye/latin-400.css';
+@import '@fontsource/im-fell-english/latin-400.css';
+@import '@fontsource/pixelify-sans/latin-400.css';
+@import '@fontsource/pixelify-sans/latin-700.css';
+@import '@fontsource/pirata-one/latin-400.css';
+@import '@fontsource/cinzel/latin-600.css';
+@import '@fontsource/cinzel/latin-800.css';

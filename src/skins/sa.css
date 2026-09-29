@@ -1,0 +1,6 @@
+/* Skin "sa": San Andreas (GTA SA).
+   Redefine as variáveis de forma de src/styles/base.css dentro de .skin-sa
+   e, se preciso, faz overrides pontuais escopados por .skin-sa.
+   (Esqueleto: a skin ainda não foi desenhada — Agente C.) */
+.skin-sa {
+}
