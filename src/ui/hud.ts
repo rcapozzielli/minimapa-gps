@@ -3,7 +3,8 @@
 //   'escala'  barra de escala (GTA V)
 //   'regiao'  nome grande do bairro atual (Zelda: Tears of the Kingdom)
 //   'posicao' caixa com as coordenadas (Minecraft)
-// themes.ts põe a classe `hud-<peça>` no <html>; o CSS só mostra as peças ligadas, e a skin
+//   'bussola' rosa dos ventos girando com o mapa (Red Dead)
+// themes.ts põe a classe `mostra-<peça>` no <html>; o CSS só mostra as peças ligadas, e a skin
 // do tema dá a aparência. Tudo é criado uma vez; nada é recriado ao trocar de tema.
 //
 // Bairro e rua saem dos TILES QUE O MAPA JÁ BAIXOU (camadas `place` e `transportation_name`
@@ -27,7 +28,7 @@ const CLASSES_BAIRRO = new Set(['neighbourhood', 'suburb', 'quarter']);
 const bairrosVistos = new Map<string, LngLat>();
 const MAX_BAIRROS = 400;
 
-const ligado = (peca: string) => document.documentElement.classList.contains(`hud-${peca}`);
+const ligado = (peca: string) => document.documentElement.classList.contains(`mostra-${peca}`);
 
 export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplibregl.Map): void {
   // Canto inferior esquerdo (GTA V): escala em cima, caixa de local embaixo. Fica na pilha de
@@ -41,6 +42,23 @@ export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplib
     </div>
     <div class="hud-peca hud-local-caixa" role="status"></div>`;
   bottomStack.prepend(canto);
+
+  // Bússola (Red Dead): anel preto com 8 marcações e N/S/L/O, girando com o mapa.
+  const bussola = document.createElement('div');
+  bussola.className = 'hud-peca hud-bussola';
+  bussola.setAttribute('aria-hidden', 'true');
+  bussola.innerHTML = BUSSOLA_SVG;
+  ui.append(bussola);
+  const rosa = bussola.firstElementChild as SVGElement;
+  let quadroBussola = 0;
+  const girarBussola = () => {
+    quadroBussola = 0;
+    if (ligado('bussola')) rosa.style.transform = `rotate(${-map.getBearing()}deg)`;
+  };
+  map.on('rotate', () => {
+    if (!quadroBussola) quadroBussola = requestAnimationFrame(girarBussola);
+  });
+  map.on('style.load', () => requestAnimationFrame(girarBussola));
 
   const regiao = document.createElement('div');
   regiao.className = 'hud-peca hud-regiao';
@@ -106,6 +124,36 @@ export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplib
     posicao.textContent = `Posição: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   });
 }
+
+/**
+ * Rosa dos ventos do minimapa do Red Dead (desenho próprio): anel preto grosso, 8 marcações
+ * que atravessam o anel (as 4 cardeais maiores, com seta no norte) e N/S/L/O em letra de
+ * cartaz. Cores medidas: anel e letras #000000. A letra usa a fonte da skin (Rye).
+ */
+const BUSSOLA_SVG = (() => {
+  const marcas = [0, 45, 90, 135, 180, 225, 270, 315]
+    .map((a) => {
+      const longa = a % 90 === 0;
+      return `<line x1="50" y1="${longa ? 1 : 4}" x2="50" y2="${longa ? 17 : 14}" transform="rotate(${a} 50 50)"
+        stroke="#000" stroke-width="${longa ? 3 : 2.5}"/>`;
+    })
+    .join('');
+  const letras = [
+    ['N', 0],
+    ['L', 90],
+    ['S', 180],
+    ['O', 270],
+  ]
+    .map(([l, a]) => `<text x="50" y="27" transform="rotate(${a} 50 50)" text-anchor="middle"
+        dominant-baseline="middle" font-size="12" fill="#000">${l}</text>`)
+    .join('');
+  return `<svg viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="41" fill="none" stroke="#000" stroke-width="7"/>
+    ${marcas}
+    <path d="M50 -4 L55 5 L45 5 Z" fill="#000"/>
+    ${letras}
+  </svg>`;
+})();
 
 /** Maior distância "redonda" (1, 2 ou 5 × 10ⁿ metros) que cabe em `max` metros. */
 function distanciaRedonda(max: number): number {

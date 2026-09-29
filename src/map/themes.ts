@@ -33,8 +33,9 @@ export interface ThemeMeta {
   skin?: string;
   /**
    * Peças de HUD que o tema liga (ver src/ui/hud.ts): 'local' (caixa BAIRRO / RUA),
-   * 'escala' (barra de escala), 'regiao' (nome grande do bairro), 'posicao' (coordenadas).
-   * Cada uma vira a classe `hud-<peça>` no <html>.
+   * 'escala' (barra de escala), 'regiao' (nome grande do bairro), 'posicao' (coordenadas),
+   * 'bussola' (rosa dos ventos girando com o mapa).
+   * Cada uma vira a classe `mostra-<peça>` no <html>.
    */
   hud?: string[];
 }
@@ -88,8 +89,8 @@ export const THEMES: ThemeInfo[] = [
     accent: '#c93fe0',
   }),
   jsonTheme('red-dead', 'Red Dead', 'red-dead.json', {
-    land: '#dec29b',
-    road: '#5a4a3a',
+    land: '#dcc19c',
+    road: '#41423d',
     route: '#9e1b1b',
     accent: '#9e1b1b',
   }),
@@ -370,6 +371,7 @@ export function bindThemes(map: maplibregl.Map): void {
   });
 
   map.on('style.load', () => {
+    registrarTexturas(map);
     const meta = (map.getStyle().metadata as { minimapa?: Partial<ThemeMeta> } | undefined)?.minimapa;
     currentMeta = {
       ...DEFAULT_META,
@@ -430,11 +432,28 @@ function applyUiVars(ui: Record<string, string>): void {
   appliedUiKeys = Object.keys(ui);
 }
 
-/** Troca as classes `hud-<peça>` do <html> (liga as peças de HUD do tema; ver src/ui/hud.ts). */
+/**
+ * Registra, antes do primeiro quadro, as texturas geradas em código (src/map/patterns.ts)
+ * que o estilo usa em *-pattern. Só o resolvedor de imagens faltantes não basta: um
+ * `background-pattern` sem a imagem pronta simplesmente não desenha o fundo.
+ */
+function registrarTexturas(map: maplibregl.Map): void {
+  for (const layer of map.getStyle().layers) {
+    const paint = ('paint' in layer ? layer.paint : undefined) as Record<string, unknown> | undefined;
+    for (const prop of ['background-pattern', 'fill-pattern', 'line-pattern']) {
+      const id = paint?.[prop];
+      if (typeof id !== 'string' || map.hasImage(id)) continue;
+      const textura = imagemDeTextura(id);
+      if (textura) map.addImage(id, textura);
+    }
+  }
+}
+
+/** Troca as classes `mostra-<peça>` do <html> (liga as peças de HUD do tema; ver src/ui/hud.ts). */
 function applyHudClasses(pecas: string[]): void {
   const cl = document.documentElement.classList;
   for (const c of appliedHudClasses) cl.remove(c);
-  appliedHudClasses = pecas.map((p) => `hud-${p}`);
+  appliedHudClasses = pecas.map((p) => `mostra-${p}`);
   for (const c of appliedHudClasses) cl.add(c);
 }
 

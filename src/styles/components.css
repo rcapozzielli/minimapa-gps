@@ -734,7 +734,7 @@ body[data-sheet='arrived'] .bottom-stack {
 }
 
 /* ---------- HUD do tema (src/ui/hud.ts) ----------
-   Cada peça só aparece se o tema a ligou (classe hud-<peça> no <html>). Aqui só a posição e
+   Cada peça só aparece se o tema a ligou (classe mostra-<peça> no <html>). Aqui só a posição e
    uma aparência neutra; a skin do tema dá a cara do jogo. */
 .hud-peca {
   display: none;
@@ -749,7 +749,7 @@ body[data-sheet='arrived'] .bottom-stack {
   gap: 6px;
   pointer-events: none;
 }
-:root.hud-escala .hud-escala {
+:root.mostra-escala .hud-escala {
   display: grid;
   grid-template-columns: auto auto;
   justify-content: space-between;
@@ -765,7 +765,7 @@ body[data-sheet='arrived'] .bottom-stack {
   border-top: 0;
   box-sizing: border-box;
 }
-:root.hud-local .hud-local-caixa:not([hidden]) {
+:root.mostra-local .hud-local-caixa:not([hidden]) {
   display: block;
   max-width: calc(100vw - 2 * var(--gutter) - 24px);
   padding: 6px 10px;
@@ -779,7 +779,7 @@ body[data-sheet='arrived'] .bottom-stack {
 }
 
 /* Nome grande do bairro atual (Hyrule): centralizado, logo acima da pilha de baixo. */
-:root.hud-regiao .hud-regiao:not([hidden]) {
+:root.mostra-regiao .hud-regiao:not([hidden]) {
   display: block;
   position: absolute;
   left: 50%;
@@ -799,7 +799,7 @@ body[data-sheet='arrived'] .bottom-stack {
 }
 
 /* Coordenadas (Minecraft): canto superior esquerdo, logo abaixo da busca. */
-:root.hud-posicao .hud-posicao {
+:root.mostra-posicao .hud-posicao {
   display: block;
   position: absolute;
   left: calc(var(--gutter) + var(--safe-left));
@@ -808,7 +808,7 @@ body[data-sheet='arrived'] .bottom-stack {
   font-size: 14px;
   pointer-events: none;
 }
-.is-navigating .hud-posicao {
+:root.mostra-posicao .is-navigating .hud-posicao {
   top: calc(var(--gutter) + var(--safe-top) + 150px);
 }
 
@@ -840,4 +840,26 @@ body[data-sheet='arrived'] .bottom-stack {
 }
 .cor-jogador-opcao[aria-checked='true'] {
   border-color: var(--ui-fg);
+}
+
+/* Bússola (Red Dead): canto superior esquerdo, abaixo da busca (ou do painel de manobra). */
+:root.mostra-bussola .hud-bussola {
+  display: block;
+  position: absolute;
+  left: calc(var(--gutter) + var(--safe-left));
+  top: calc(var(--gutter) + var(--safe-top) + var(--tap) + 14px);
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+}
+.hud-bussola svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  font-family: var(--ui-font-display);
+}
+:root.mostra-bussola .is-navigating .hud-bussola {
+  /* abaixo do painel de manobra + chip "Depois" (que termina em ~170 px) */
+  top: calc(var(--gutter) + var(--safe-top) + 173px);
 }

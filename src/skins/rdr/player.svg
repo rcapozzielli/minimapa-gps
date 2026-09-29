@@ -1,16 +1,9 @@
-<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
-  <defs>
-    <radialGradient id="sk-rdr-shadow">
-      <stop offset="0" stop-color="#2b1a12" stop-opacity=".5"/>
-      <stop offset="1" stop-color="#2b1a12" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <ellipse cx="20" cy="22" rx="17" ry="15" fill="url(#sk-rdr-shadow)"/>
-  <circle cx="20" cy="20" r="13.5" fill="#f4ecd8" fill-opacity=".85" stroke="#2b1a12" stroke-width="2"/>
-  <circle cx="20" cy="20" r="10.5" fill="none" stroke="#2b1a12" stroke-width=".8" stroke-dasharray="1.2 2.1"/>
-  <path d="M20 6.5 V9.5 M33.5 20 H30.5 M20 33.5 V30.5 M6.5 20 H9.5" stroke="#2b1a12" stroke-width="2"/>
-  <path d="M20 1.5 L25.5 20 H14.5 Z" fill="#9e1b1b" stroke="#2b1a12" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M14.5 20 H25.5 L20 36 Z" fill="var(--ui-player-fill)" stroke="#2b1a12" stroke-width="1.8" stroke-linejoin="round"/>
-  <circle cx="20" cy="20" r="2.4" fill="#2b1a12"/>
-  <circle cx="20" cy="20" r="1" fill="#c9a86a"/>
+<svg viewBox="0 0 40 48" width="34" height="41" aria-hidden="true">
+  <!-- Pino em gota branco (#ffffff) com anel escuro no centro (#0c0503), como o jogador no
+       minimapa do Red Dead (medidos em referencias/paletas.md). A ponta indica a direção.
+       O centro do círculo fica no centro do SVG (= sua posição). Contorno fino escuro para
+       destacar no papel. Chapado, sem sombra. -->
+  <path d="M20 3 C23 10 32 15 32 24 A12 12 0 0 1 8 24 C8 15 17 10 20 3 Z" fill="#ffffff"
+        stroke="#0c0503" stroke-width="1.6" stroke-linejoin="round"/>
+  <circle cx="20" cy="24" r="6" fill="none" stroke="#0c0503" stroke-width="2.6"/>
 </svg>
