@@ -7,13 +7,22 @@ const MIN_SPEED = 0.8;
 /** Deslocamento mínimo para calcular a direção nós mesmos. */
 const MIN_MOVE_M = 6;
 
+/** Ponto de partida do modo simulação sem ?pos (Av. Paulista, São Paulo). */
+const SIM_START: LngLat = [-46.6559, -23.5614];
+
 let lastForHeading: LngLat | null = null;
 
 export function startLocation(onError: (msg: string) => void): void {
   // Para testar no PC: ?pos=-23.5874,-46.6576 fixa uma posição falsa (lat,lng).
-  const fake = new URLSearchParams(location.search).get('pos')?.split(',').map(Number);
+  // Com ?sim, quem move a posição é o simulador (nav/simulator.ts), então o GPS fica desligado.
+  const params = new URLSearchParams(location.search);
+  const fake = params.get('pos')?.split(',').map(Number);
   if (fake?.length === 2 && fake.every(Number.isFinite)) {
     setState({ position: [fake[1], fake[0]], accuracy: 5 });
+    return;
+  }
+  if (params.has('sim')) {
+    setState({ position: SIM_START, accuracy: 5 });
     return;
   }
 
@@ -26,9 +35,10 @@ export function startLocation(onError: (msg: string) => void): void {
     (pos) => {
       const here: LngLat = [pos.coords.longitude, pos.coords.latitude];
       const { heading: gpsHeading, speed } = pos.coords;
-      const patch: { position: LngLat; accuracy: number; heading?: number } = {
+      const patch: { position: LngLat; accuracy: number; speed: number; heading?: number } = {
         position: here,
         accuracy: pos.coords.accuracy,
+        speed: speed ?? 0,
       };
 
       // Preferimos a direção que o próprio GPS informa (só vem em movimento).

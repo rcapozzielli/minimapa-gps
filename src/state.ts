@@ -10,6 +10,19 @@ export interface Destination {
   label: string;
 }
 
+/** Progresso da navegação, recalculado a cada leitura do GPS. */
+export interface NavProgress {
+  /** Índice (em route.steps) da próxima manobra. */
+  stepIndex: number;
+  /** Metros até a próxima manobra. */
+  distToManeuver: number;
+  remainingDistance: number;
+  remainingDuration: number;
+  /** Seu ponto "encaixado" na rota e o segmento em que ele está (para apagar o trecho já percorrido). */
+  snapped: LngLat;
+  segIndex: number;
+}
+
 export interface AppState {
   /** Para onde vamos (da busca ou de um toque longo), ou null. */
   destination: Destination | null;
@@ -17,10 +30,19 @@ export interface AppState {
   route: Route | null;
   routeLoading: boolean;
   routeError: string | null;
+  /** Navegação passo a passo ligada? (depois de tocar em "Iniciar") */
+  navigating: boolean;
+  nav: NavProgress | null;
+  /** Recalculando a rota porque você saiu do trajeto. */
+  rerouting: boolean;
+  /** Voz desligada? */
+  muted: boolean;
   /** Última posição do GPS, ou null enquanto não chega a primeira. */
   position: LngLat | null;
   /** Direção do movimento em graus (0 = norte), ou null se ainda não se sabe. */
   heading: number | null;
+  /** Velocidade em m/s (0 se parado ou desconhecida). */
+  speed: number;
   /** Precisão do GPS em metros. */
   accuracy: number | null;
   /** Câmera acompanhando o jogador? */
@@ -34,8 +56,13 @@ const state: AppState = {
   route: null,
   routeLoading: false,
   routeError: null,
+  navigating: false,
+  nav: null,
+  rerouting: false,
+  muted: false,
   position: null,
   heading: null,
+  speed: 0,
   accuracy: null,
   following: true,
 };

@@ -23,11 +23,36 @@ export function startRouting(onNewRoute: (route: Route) => void): void {
   });
 }
 
+/** Direção atual, só se estiver em movimento (parado, a direção é ruído). */
+function movingHeading(): number | null {
+  const { heading, speed } = getState();
+  return speed > 2 ? heading : null;
+}
+
+/**
+ * Recalcula a rota a partir de onde você está, mantendo o destino.
+ * Usado pelo navegador quando você sai do trajeto. Retorna false se falhar.
+ */
+export async function reroute(): Promise<boolean> {
+  const { position, destination } = getState();
+  if (!position || !destination) return false;
+  setState({ rerouting: true });
+  try {
+    const route = await fetchRoute(position, destination.lngLat, movingHeading());
+    if (getState().destination !== destination) return false;
+    setState({ route, rerouting: false });
+    return true;
+  } catch {
+    setState({ rerouting: false });
+    return false;
+  }
+}
+
 async function calculate(onNewRoute: (route: Route) => void): Promise<void> {
-  const { position, destination, heading } = getState();
+  const { position, destination } = getState();
   if (!position || !destination) return;
   try {
-    const route = await fetchRoute(position, destination.lngLat, heading);
+    const route = await fetchRoute(position, destination.lngLat, movingHeading());
     // O usuário pode ter trocado/cancelado o destino enquanto esperávamos.
     if (getState().destination !== destination) return;
     setState({ route, routeLoading: false });

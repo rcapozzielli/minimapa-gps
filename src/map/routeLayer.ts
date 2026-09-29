@@ -29,7 +29,7 @@ export function setupRouteLayer(map: maplibregl.Map): void {
   onThemeApplied(() => addLayers(map));
 
   subscribe((s, changed) => {
-    if ('route' in changed) updateData(map);
+    if ('route' in changed || 'nav' in changed) updateData(map);
     if ('destination' in changed) {
       if (s.destination) pin.setLngLat(s.destination.lngLat).addTo(map);
       else pin.remove();
@@ -56,10 +56,12 @@ function addLayers(map: maplibregl.Map): void {
 function updateData(map: maplibregl.Map): void {
   const src = map.getSource<maplibregl.GeoJSONSource>(SOURCE);
   if (!src) return; // tema ainda carregando; addLayers vai chamar de novo
-  const { route } = getState();
-  src.setData(
-    route
-      ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: route.coords } }
-      : EMPTY,
-  );
+  const { route, nav } = getState();
+  if (!route) {
+    src.setData(EMPTY);
+    return;
+  }
+  // Navegando: desenha só o que falta, a partir do seu ponto na rota (como no GPS do jogo).
+  const coords = nav ? [nav.snapped, ...route.coords.slice(nav.segIndex + 1)] : route.coords;
+  src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
 }

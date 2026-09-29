@@ -140,6 +140,60 @@ body {
   cursor: default;
 }
 
+/* ---------- Painel de manobra (topo, durante a navegação) ---------- */
+.is-navigating .search {
+  display: none;
+}
+.maneuver {
+  position: absolute;
+  top: calc(var(--gutter) + var(--safe-top));
+  left: calc(var(--gutter) + var(--safe-left));
+  right: calc(var(--gutter) + var(--safe-right));
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 96px;
+  padding: 12px 18px 12px 14px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: var(--ui-bg);
+  border-left: 6px solid var(--ui-accent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+}
+.maneuver-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  color: var(--ui-accent);
+}
+.maneuver-text {
+  min-width: 0;
+}
+.maneuver-dist {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+}
+.maneuver-action {
+  margin-top: 4px;
+  font-size: 15px;
+  opacity: 0.8;
+}
+.maneuver-street {
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------- Pilha de baixo: botões + cartão da viagem ---------- */
 .bottom-stack {
   position: absolute;
@@ -178,6 +232,23 @@ body {
 .fab:active {
   transform: scale(0.96);
 }
+.fab-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: none;
+}
+.fab-row > * {
+  pointer-events: auto;
+}
+.fab-round {
+  justify-content: center;
+  width: 56px;
+  padding: 0;
+}
+.fab-sim {
+  background: #7a5a00;
+}
 
 .trip {
   align-self: stretch;
@@ -214,6 +285,24 @@ body {
 .trip-error .trip-sub {
   white-space: normal;
 }
+.trip-start {
+  flex: none;
+  height: 56px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ui-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.trip-start:active {
+  transform: scale(0.96);
+}
 .trip-cancel {
   flex: none;
   width: 56px;
@@ -237,6 +326,13 @@ body {
   color: #fff;
   font-size: 15px;
   text-align: center;
+}
+.toast-info {
+  background: var(--ui-accent);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Atribuição do OSM acima da safe area inferior. */

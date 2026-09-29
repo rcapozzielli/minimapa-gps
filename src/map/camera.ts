@@ -6,12 +6,23 @@ import { getState, setState, subscribe, type LngLat } from '../state';
 const FOLLOW_PITCH = 60;
 const FOLLOW_ZOOM = 17;
 
+/**
+ * Zoom desejado no modo seguir. Guardamos numa variável em vez de ler
+ * map.getZoom(): se uma animação de zoom for interrompida pela próxima
+ * leitura do GPS, o zoom "no meio do caminho" não vira o novo padrão.
+ */
+let followZoom = FOLLOW_ZOOM;
+
 export function setupCamera(map: maplibregl.Map): void {
   let firstFix = true;
 
   // Eventos disparados por gesto do usuário têm originalEvent; os nossos (easeTo) não.
   map.on('dragstart', (e) => {
     if ('originalEvent' in e && e.originalEvent) setState({ following: false });
+  });
+  // Zoom de pinça (ou roda do mouse) vira o novo zoom do modo seguir.
+  map.on('zoomend', (e) => {
+    if ('originalEvent' in e && e.originalEvent) followZoom = map.getZoom();
   });
 
   subscribe((s, changed) => {
@@ -24,6 +35,7 @@ export function setupCamera(map: maplibregl.Map): void {
     }
 
     const recentered = changed.following === true;
+    if (recentered) followZoom = FOLLOW_ZOOM;
     if (s.following && (changed.position || changed.heading != null || recentered)) {
       follow(map, recentered);
     }
@@ -56,8 +68,7 @@ function follow(map: maplibregl.Map, recentered: boolean): void {
     center: position,
     bearing: heading ?? map.getBearing(),
     pitch: FOLLOW_PITCH,
-    // Ao recentralizar volta ao zoom padrão; senão respeita o zoom de pinça do usuário.
-    zoom: recentered ? FOLLOW_ZOOM : map.getZoom(),
+    zoom: followZoom,
     padding: { top, bottom: 0, left: 0, right: 0 },
     duration: recentered ? 600 : 1000,
     easing: (t) => t, // linear: movimento contínuo entre leituras do GPS

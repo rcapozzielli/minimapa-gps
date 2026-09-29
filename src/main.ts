@@ -1,6 +1,6 @@
 // Ponto de entrada: cria o mapa e liga cada módulo ao estado global.
 import './styles.css';
-import { getState, setState } from './state';
+import { getState, setState, subscribe } from './state';
 import { createMap } from './map/map';
 import { createPlayer } from './map/player';
 import { setupCamera, showRouteOverview } from './map/camera';
@@ -8,8 +8,12 @@ import { setupRouteLayer } from './map/routeLayer';
 import { onLongPress } from './map/longPress';
 import { startLocation } from './geo/location';
 import { startRouting } from './nav/routing';
+import { setupNavigator } from './nav/navigator';
+import { initVoice } from './nav/voice';
+import { isSimulation, startSimulator } from './nav/simulator';
 import { createButtons, toast } from './ui/buttons';
 import { createSearchBar } from './ui/searchBar';
+import { createManeuverPanel } from './ui/maneuverPanel';
 import { createTripInfo } from './ui/tripInfo';
 
 const ui = document.getElementById('ui')!;
@@ -19,14 +23,29 @@ createPlayer(map);
 setupCamera(map);
 setupRouteLayer(map);
 
+// Topo: barra de busca (parado) ou painel de manobra (navegando).
 createSearchBar(ui, () => getState().position ?? map.getCenter().toArray());
+createManeuverPanel(ui);
 // Pilha de baixo: botões flutuantes acima do cartão da viagem.
 const bottom = document.createElement('div');
 bottom.className = 'bottom-stack';
 ui.append(bottom);
-createButtons(bottom);
+const fabRow = createButtons(bottom);
 createTripInfo(bottom);
 
-onLongPress(map, (lngLat) => setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } }));
+// A classe no <body> deixa o CSS trocar a barra de busca pelo painel de manobra.
+subscribe((s, changed) => {
+  if ('navigating' in changed) document.body.classList.toggle('is-navigating', s.navigating);
+});
+
+initVoice();
+onLongPress(map, (lngLat) => {
+  if (!getState().navigating) setState({ destination: { lngLat, label: 'Ponto marcado no mapa' } });
+});
 startRouting((route) => showRouteOverview(map, route.coords));
+setupNavigator(() => {
+  toast(ui, 'Você chegou ao destino!', 'info');
+  setState({ destination: null });
+});
+if (isSimulation()) startSimulator(fabRow);
 startLocation((msg) => toast(ui, msg));
