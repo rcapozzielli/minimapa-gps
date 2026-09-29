@@ -115,3 +115,17 @@
   outline: none;
   box-shadow: inset 0 0 0 3px var(--ui-accent), inset 0 0 0 5px #04202b;
 }
+
+/* ---------- HUD: nome da região, como "Central Hyrule" no mapa do Tears of the Kingdom ----------
+   Serifada clara (#cfbe7b, medido) com brilho suave. */
+.skin-zelda .hud-regiao {
+  color: #cfbe7b;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0 0 6px rgba(207, 190, 123, 0.55),
+    0 0 2px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.8);
+}

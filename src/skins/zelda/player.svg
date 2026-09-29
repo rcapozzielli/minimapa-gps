@@ -1,13 +1,5 @@
-<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
-  <defs>
-    <radialGradient id="sk-zelda-shadow">
-      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#000" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <ellipse cx="20" cy="23" rx="16" ry="14" fill="url(#sk-zelda-shadow)"/>
-  <path d="M20 2 L34 35 L20 27 L6 35 Z" fill="var(--ui-player-fill)"/>
-  <path d="M20 2 L34 35 L20 27 Z" fill="#7a4a00" fill-opacity=".28"/>
-  <path d="M20 2 L34 35 L20 27 L6 35 Z" fill="none" stroke="var(--ui-player-stroke)"
-        stroke-width="2.5" stroke-linejoin="round"/>
+<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+  <!-- Triângulo amarelo pequeno e sólido, sem contorno, como o jogador no mapa do Zelda: Tears
+       of the Kingdom (#f5f938, medido em referencias/paletas.md). -->
+  <path d="M12 2 L21 21 L3 21 Z" fill="#f5f938"/>
 </svg>

@@ -22,6 +22,7 @@ import {
 } from '@iantroisi/sickmaps';
 import '@iantroisi/sickmaps/css';
 import { imagemDeTextura } from './patterns';
+import { adicionarCurvasDeNivel } from './contornos';
 
 export interface ThemeMeta {
   label: string;
@@ -109,12 +110,14 @@ export const THEMES: ThemeInfo[] = [
     route: '#ffd23a',
     accent: '#f0b429',
   }),
-  jsonTheme('hyrule', 'Hyrule', 'hyrule.json', {
-    land: '#d4cfae',
-    road: '#f5efd9',
-    route: '#26b0e0',
-    accent: '#40d0f2',
-  }),
+  // Hyrule (Zelda: Tears of the Kingdom), com curvas de nível geradas no navegador.
+  jsonTheme(
+    'hyrule',
+    'Hyrule',
+    'hyrule.json',
+    { land: '#252729', road: '#a39d7b', route: '#3b9aac', accent: '#584d20' },
+    (style) => adicionarCurvasDeNivel(style, { cor: '#a39d7b', antesDe: 'building' }),
+  ),
   // Outros temas do sickmaps entram numa linha, ex.:
   // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }, { ...cores }),
 ];
@@ -138,7 +141,14 @@ const appliedListeners: Array<(meta: ThemeMeta) => void> = [];
 
 // ---------- Tipos de tema ----------
 
-function jsonTheme(id: string, label: string, file: string, preview: ThemePreview): ThemeInfo {
+/** `ajustar` (opcional) mexe no estilo depois de baixado (ex.: inserir curvas de nível). */
+function jsonTheme(
+  id: string,
+  label: string,
+  file: string,
+  preview: ThemePreview,
+  ajustar?: (style: maplibregl.StyleSpecification) => void,
+): ThemeInfo {
   // BASE_URL cobre o caso de o app ser publicado numa subpasta (GitHub Pages).
   const url = `${import.meta.env.BASE_URL}styles/${file}`;
   return {
@@ -148,7 +158,9 @@ function jsonTheme(id: string, label: string, file: string, preview: ThemePrevie
     load: cached(async () => {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Tema ${label}: ${res.status}`);
-      return res.json();
+      const style = (await res.json()) as maplibregl.StyleSpecification;
+      ajustar?.(style);
+      return style;
     }),
   };
 }
