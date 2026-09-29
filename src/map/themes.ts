@@ -101,8 +101,8 @@ const SA_META: ThemeMeta = {
 /** Para adicionar um tema: crie o JSON em public/styles/ (ou use um tema do sickmaps) e registre aqui. */
 export const THEMES: ThemeInfo[] = [
   jsonTheme('los-santos', 'Los Santos', 'los-santos.json', {
-    land: '#2f3336',
-    road: '#cdd0d2',
+    land: '#181818',
+    road: '#979797',
     route: '#c93fe0',
     accent: '#c93fe0',
   }),

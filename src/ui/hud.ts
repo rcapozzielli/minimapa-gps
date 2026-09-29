@@ -18,6 +18,15 @@ const INTERVALO_MS = 1000;
 const RAIO_RUA_M = 40;
 const CLASSES_BAIRRO = new Set(['neighbourhood', 'suburb', 'quarter']);
 
+/**
+ * Memória de bairros já vistos (nome -> ponto). O esquema OpenMapTiles não tem o contorno dos
+ * bairros, só um ponto no meio de cada um; no zoom de navegação a área carregada é pequena e
+ * esse ponto quase sempre fica fora dela. Então guardamos todo ponto de bairro que aparece
+ * (visão geral da rota, zoom afastado) e escolhemos o mais próximo desta memória.
+ */
+const bairrosVistos = new Map<string, LngLat>();
+const MAX_BAIRROS = 400;
+
 const ligado = (peca: string) => document.documentElement.classList.contains(`hud-${peca}`);
 
 export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplibregl.Map): void {
@@ -54,7 +63,7 @@ export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplib
     if (!ligado('local') && !ligado('regiao')) return;
     const pos = getState().position;
     if (!pos || !map.isStyleLoaded()) return;
-    const bairro = bairroMaisProximo(map, pos);
+    const bairro = bairroMaisProximo(pos);
     const rua = ruaAtual(map, pos);
     caixaLocal.textContent = [bairro, rua].filter(Boolean).join(' / ');
     caixaLocal.hidden = !caixaLocal.textContent;
@@ -68,7 +77,10 @@ export function createHud(ui: HTMLElement, bottomStack: HTMLElement, map: maplib
   subscribe((_s, changed) => {
     if (changed.position || 'nav' in changed) pedirLocal();
   });
-  map.on('idle', pedirLocal); // tiles novos (ex.: depois de trocar de tema)
+  map.on('idle', () => {
+    lembrarBairros(map);
+    pedirLocal(); // tiles novos (ex.: depois de trocar de tema)
+  });
 
   // ---- Escala ----
   let quadro = 0;
@@ -111,15 +123,30 @@ function fonteVetorial(map: maplibregl.Map): string | undefined {
 const nomeDe = (p: Record<string, unknown> | null) =>
   (p?.['name:pt'] ?? p?.name ?? p?.['name:latin']) as string | undefined;
 
-function bairroMaisProximo(map: maplibregl.Map, pos: LngLat): string | undefined {
+/** Guarda os pontos de bairro dos tiles carregados agora (chamado a cada 'idle' do mapa). */
+function lembrarBairros(map: maplibregl.Map): void {
+  if (!ligado('local') && !ligado('regiao')) return;
   const fonte = fonteVetorial(map);
   if (!fonte) return;
-  let melhor: { nome: string; d: number } | undefined;
   for (const f of map.querySourceFeatures(fonte, { sourceLayer: 'place' })) {
     if (f.geometry.type !== 'Point' || !CLASSES_BAIRRO.has(f.properties?.class)) continue;
     const nome = nomeDe(f.properties);
     if (!nome) continue;
-    const d = distance(pos, f.geometry.coordinates as LngLat);
+    bairrosVistos.delete(nome); // reinserir deixa os mais recentes no fim
+    bairrosVistos.set(nome, f.geometry.coordinates as LngLat);
+  }
+  // Limite de memória: esquece os mais antigos.
+  for (const nome of bairrosVistos.keys()) {
+    if (bairrosVistos.size <= MAX_BAIRROS) break;
+    bairrosVistos.delete(nome);
+  }
+}
+
+/** Bairro mais próximo entre os já vistos (ver bairrosVistos). */
+function bairroMaisProximo(pos: LngLat): string | undefined {
+  let melhor: { nome: string; d: number } | undefined;
+  for (const [nome, ponto] of bairrosVistos) {
+    const d = distance(pos, ponto);
     if (!melhor || d < melhor.d) melhor = { nome, d };
   }
   return melhor?.nome;

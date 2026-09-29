@@ -91,8 +91,11 @@ setupNavigator(() => {
 if (isSimulation()) {
   // O botão "Desviar (sim)" fica no centro da linha de baixo, ao lado de "Recentralizar".
   startSimulator(fabRow.center);
-  // Para depurar no console do navegador (só no modo simulação): minimapa.map, minimapa.getState()
-  Object.assign(window, { minimapa: { map, getState } });
+  // Para depurar no console do navegador e para os scripts de teste (só no modo simulação):
+  // minimapa.map, minimapa.getState(), minimapa.setState(). Use estes, e não import('/src/state.ts'):
+  // depois de uma edição com o servidor rodando, o Vite serve os módulos com ?t=..., e um import
+  // sem esse sufixo carrega OUTRA cópia do estado, separada do app.
+  Object.assign(window, { minimapa: { map, getState, setState } });
 }
 startLocation((msg) => toast(ui, msg));
 

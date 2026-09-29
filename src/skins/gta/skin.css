@@ -106,3 +106,41 @@
   border-radius: 0;
   height: 4px;
 }
+
+/* ---------- Jogador: cor do protagonista (referencias/paletas.md) ----------
+   Verde medido no HUD da referência; azul e laranja DERIVADOS do verde (mesma luminosidade
+   e saturação, outro matiz), porque a captura só mostra o verde. */
+:root.skin-gta {
+  --cor-jogador-verde: #a2dca2; /* Franklin (medido) */
+  --cor-jogador-azul: #a2c4dc; /* Michael (derivado) */
+  --cor-jogador-laranja: #dcbfa2; /* Trevor (derivado) */
+  --gta-jogador: var(--cor-jogador-verde);
+}
+:root.skin-gta[data-cor-jogador='azul'] {
+  --gta-jogador: var(--cor-jogador-azul);
+}
+:root.skin-gta[data-cor-jogador='laranja'] {
+  --gta-jogador: var(--cor-jogador-laranja);
+}
+
+/* ---------- HUD: como o mapa de pausa ----------
+   Canto inferior esquerdo: barra de escala (#c6c6c4) e, embaixo, a caixa "BAIRRO / RUA"
+   (fundo #0c0c0a, texto branco em caixa alta). Tudo medido na referência. */
+.skin-gta .hud-escala {
+  color: #c6c6c4;
+  font-size: 13px;
+  font-family: var(--ui-font-display);
+}
+.skin-gta .hud-escala-barra {
+  height: 8px;
+  border-width: 2px;
+}
+.skin-gta .hud-local-caixa {
+  padding: 5px 10px;
+  background: rgba(12, 12, 10, 0.86);
+  color: #ffffff;
+  font-family: var(--ui-font-display);
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  box-shadow: none;
+}

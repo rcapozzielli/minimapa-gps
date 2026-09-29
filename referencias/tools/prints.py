@@ -78,6 +78,10 @@ def main() -> None:
         page.on('console', lambda msg: msg.type == 'error' and erros.setdefault(atual['tema'], []).append(msg.text))
         page.on('pageerror', lambda exc: erros.setdefault(atual['tema'], []).append(f'EXCEÇÃO: {exc}'))
         page.goto(URL + '?sim=1', wait_until='networkidle')
+        # Logo depois de mudanças no código, o Vite reotimiza e recarrega a página sozinho
+        # uma vez: espera assentar e recarrega antes de começar.
+        page.wait_for_timeout(3000)
+        page.goto(URL + '?sim=1', wait_until='networkidle')
         lista = [t for t in temas(page) if not so or t in so]
         print('temas:', lista)
 
@@ -92,7 +96,7 @@ def main() -> None:
             # Rota curta (1 requisição ao OSRM por tema; o app já respeita o intervalo de 2 s).
             page.evaluate(
                 """async (dest) => {
-                  const { setState, getState } = await import('/src/state.ts');
+                  const { setState, getState } = minimapa;
                   setState({ destination: { lngLat: dest, label: 'Consolação' } });
                   for (let i = 0; i < 40 && !getState().route && !getState().routeError; i++)
                     await new Promise(r => setTimeout(r, 250));
@@ -114,7 +118,7 @@ def main() -> None:
             page.screenshot(path=str(saida / f'{tema}-topo.png'))
 
             page.evaluate("() => document.querySelectorAll('style').forEach(s => s.textContent.includes('#ui { visibility: hidden') && s.remove())")
-            page.evaluate("async () => { const { setState } = await import('/src/state.ts'); setState({ sheet: 'route' }); }")
+            page.evaluate("() => minimapa.setState({ sheet: 'route' })")
             page.wait_for_timeout(400)
             iniciar = page.locator('.rp-start')
             if iniciar.is_visible():

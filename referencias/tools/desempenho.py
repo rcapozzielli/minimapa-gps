@@ -62,7 +62,7 @@ def main() -> None:
             page.wait_for_function('() => window.minimapa && minimapa.map.isStyleLoaded()', timeout=30000)
             page.evaluate(
                 """async (dest) => {
-                  const { setState, getState } = await import('/src/state.ts');
+                  const { setState, getState } = minimapa;
                   setState({ destination: { lngLat: dest, label: 'Consolação' } });
                   for (let i = 0; i < 40 && !getState().route; i++) await new Promise(r => setTimeout(r, 250));
                 }""",

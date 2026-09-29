@@ -1,12 +1,6 @@
-<svg viewBox="-4 -4 48 48" width="44" height="44" aria-hidden="true">
-  <defs>
-    <radialGradient id="sk-gta-shadow">
-      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#000" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <ellipse cx="20" cy="22" rx="15" ry="13" fill="url(#sk-gta-shadow)"/>
-  <path d="M20 3 L34 35 L20 28 L6 35 Z" fill="var(--ui-player-fill)" stroke="var(--ui-player-stroke)"
+<svg viewBox="-3 -3 42 42" width="38" height="38" aria-hidden="true">
+  <!-- Seta triangular chapada, na cor do protagonista escolhido (--gta-jogador, ver skin.css).
+       Contorno #0c0c0a (medido na caixa de localização) para destacar das ruas claras. -->
+  <path d="M18 2 L33 33 L18 26 L3 33 Z" fill="var(--gta-jogador, #a2dca2)" stroke="#0c0c0a"
         stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M20 5.5 L32.2 33.2 L20 27 Z" fill="#000" fill-opacity=".16"/>
 </svg>
