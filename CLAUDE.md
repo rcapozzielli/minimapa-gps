@@ -116,7 +116,8 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   (`.theme-card[data-theme=...]`), não chamando `setTheme` de um import.
 - **Testes preferidos: Playwright** (skill webapp-testing), em `referencias/tools/`:
   `prints.py` (prints por tema), `conferir.py` (cores do print × paleta, em ΔE), `validar.py`
-  (DEMO DRIVE: rota, recálculo, troca de tema; registra URLs com erro), `desempenho.py`.
+  (DEMO DRIVE: rota, recálculo, troca de tema; registra URLs com erro), `desempenho.py`,
+  `miniaturas.py` (capturas do seletor em `public/miniaturas/`: rode de novo ao mudar um tema).
   Rodam contra o `npm run dev` (ignoram o certificado). Verifique por números primeiro; imagem
   só para uma olhada rápida. O tempo de quadro no Chromium sem janela (SwiftShader) varia muito
   entre rodadas: não compare números medidos em momentos diferentes.

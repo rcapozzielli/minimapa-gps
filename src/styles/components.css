@@ -324,10 +324,6 @@ body[data-sheet='arrived'] .bottom-stack {
   width: var(--tap);
   padding: 0;
 }
-/* Pílula com ícone + texto (ex.: "Recentralizar"). */
-.fab-pill {
-  padding: 0 22px 0 18px;
-}
 .fab-sim {
   background: #7a5a00;
   color: #fff;
@@ -364,14 +360,26 @@ body[data-sheet='arrived'] .bottom-stack {
   opacity: 0.8;
 }
 
-/* ---------- Folha "themes": seletor de mapas (src/ui/themePicker.ts) ---------- */
+/* ---------- Folha "themes": seletor de mapas (src/ui/themePicker.ts) ----------
+   Faixa horizontal na parte de baixo: o mapa continua visível acima e mostra o tema tocado. */
+.sheet-themes .sheet-title {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
 .theme-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding-bottom: 4px;
+  position: relative; /* referência do offsetLeft dos cartões (themePicker.ts rola até o escolhido) */
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x; /* a folha bloqueia gestos (touch-action: none); aqui, rolar para o lado */
+  padding-bottom: 6px;
+  scrollbar-width: thin;
 }
 .theme-card {
+  flex: 0 0 140px;
+  scroll-snap-align: start;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -395,15 +403,20 @@ body[data-sheet='arrived'] .bottom-stack {
   overflow: hidden;
   border-radius: calc(var(--ui-radius) - 6px);
 }
-.theme-thumb svg {
+.theme-thumb svg,
+.theme-thumb img {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 .theme-name {
   padding: 0 4px;
   font-size: 15px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .theme-card.is-current {
   border-color: var(--ui-accent);
@@ -919,4 +932,23 @@ body[data-sheet='arrived'] .bottom-stack {
 /* Botão de pontos de interesse desligado: fica apagado. */
 .fab.is-off svg {
   opacity: 0.4;
+}
+
+/* ---------- Atribuição do OpenStreetMap (controle do MapLibre) ----------
+   Exigida pela licença: sempre visível, no canto inferior direito. Pequena e translúcida,
+   com o fundo, a cor, a fonte e os cantos do tema. (Seletor com duas classes para vencer o
+   CSS do MapLibre sem depender da ordem dos arquivos.) */
+.maplibregl-ctrl.maplibregl-ctrl-attrib {
+  margin: 0 4px 4px 0;
+  padding: 1px 6px;
+  background: var(--ui-panel-bg);
+  border-radius: min(6px, var(--ui-radius));
+  opacity: 0.75;
+  color: var(--ui-fg);
+  font-family: var(--ui-font);
+  font-size: 10px;
+  line-height: 14px;
+}
+.maplibregl-ctrl.maplibregl-ctrl-attrib a {
+  color: inherit;
 }

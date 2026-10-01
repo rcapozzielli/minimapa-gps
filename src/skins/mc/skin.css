@@ -174,8 +174,9 @@
 .moldura-mc .maplibregl-ctrl-bottom-right {
   z-index: 3;
 }
-.moldura-mc .maplibregl-ctrl-attrib {
+.moldura-mc .maplibregl-ctrl.maplibregl-ctrl-attrib {
   margin: 0 4px 4px 0;
+  opacity: 0.85;
   padding: 0 4px;
   background: #c1ac88;
   border: 2px solid #4d352b;
@@ -185,7 +186,7 @@
   line-height: 14px;
   color: #4d352b;
 }
-.moldura-mc .maplibregl-ctrl-attrib a {
+.moldura-mc .maplibregl-ctrl.maplibregl-ctrl-attrib a {
   color: #4d352b;
 }
 

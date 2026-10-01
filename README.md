@@ -15,7 +15,9 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
 - Rota com linha grossa no estilo de GPS de jogo; o trecho já percorrido some.
 - Navegação passo a passo em português: painel com a próxima manobra (e a seguinte, em
   "Depois"), **voz**, velocímetro e barra com horário de chegada e "Encerrar".
-- Botão **Camadas** (à direita) para escolher o mapa; bússola para voltar o norte para cima.
+- Botão **Camadas** (à direita) abre uma faixa de mapas embaixo, com miniaturas de verdade de
+  cada tema: tocar num deles já troca o mapa ao fundo. Na mesma coluna: bússola (volta o norte
+  para cima) e **Recentralizar** (aparece quando você arrasta o mapa).
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
 - Seis temas, com as cores medidas em capturas dos jogos (`referencias/paletas.md`):
   **Los Santos** (GTA V), **San Andreas** (GTA SA), **Red Dead** (RDR2), **Hyrule**
@@ -23,7 +25,9 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
   sua fonte, os seus painéis, a sua seta de jogador e o seu HUD (caixa de bairro e rua,
   bússola, nome da região, coordenadas).
 - Ícones de **pontos de interesse** (restaurantes, postos, farmácias, hotéis...) no estilo de
-  cada jogo, a partir do zoom 15; tocar mostra o nome. Um botão liga e desliga.
+  cada jogo, a partir do zoom 15, e de **aeroportos** a partir do zoom 11; tocar mostra o nome.
+  Um botão liga e desliga.
+- Túneis aparecem tracejados e discretos, por baixo das ruas.
 - Instalável na tela inicial; a tela fica ligada durante a navegação.
 
 ## Rodar localmente
@@ -79,6 +83,7 @@ e o `vite.config.ts` usa essa variável como `base`. Localmente, a base é `/`.
 
 ```
 public/styles/        temas em JSON (estilos MapLibre)
+public/miniaturas/    capturas de cada tema para o seletor (referencias/tools/miniaturas.py)
 src/main.ts           ponto de entrada: liga todos os módulos
 src/state.ts          estado global + eventos (os módulos só conversam por aqui)
 src/map/              mapa, temas, câmera, marcador do jogador, rota, toque longo
@@ -91,7 +96,7 @@ src/skins/<skin>/     a cara de jogo de cada tema: skin.css, player.svg, pin.svg
 src/styles/           fontes, variáveis e componentes da interface
 referencias/          paletas medidas dos jogos, prints antes/depois e os scripts de teste
                       (as capturas dos jogos em si ficam fora do git)
-scripts/              gerador dos ícones de pontos de interesse
+scripts/              geradores dos ícones de pontos de interesse
 ```
 
 ## Criar um tema novo
@@ -127,7 +132,7 @@ Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta 
    enquanto o tema estiver ativo (ex.: a moldura do Minecraft (mapa)).
 4. **Pasta da skin** `src/skins/meu-tema/`: `skin.css` (variáveis em `:root.skin-meu-tema`),
    `player.svg`, `pin.svg` e `poi/<categoria>.svg` (restaurante, fast-food, bar, cafe, loja,
-   posto, farmacia, hotel). O que faltar vem de `src/skins/padrao/`. Não precisa registrar
+   posto, farmacia, hotel, aeroporto). O que faltar vem de `src/skins/padrao/`. Não precisa registrar
    nada: o app encontra a pasta sozinho.
 5. **Registre** o estilo em `src/map/themes.ts`, na lista `THEMES`:
 
@@ -139,6 +144,13 @@ Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta 
 
    ```bash
    npx -p @maplibre/maplibre-gl-style-spec gl-style-validate public/styles/meu-tema.json
+   ```
+
+7. **Miniatura do seletor:** com o `npm run dev` rodando, gere a captura do tema (sem ela, o
+   seletor mostra um desenho simples feito com as cores de `preview`):
+
+   ```bash
+   python referencias/tools/miniaturas.py meu-tema
    ```
 
 **Dicas:**
@@ -183,8 +195,11 @@ Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta 
 - **Rotas:** [OSRM](https://project-osrm.org) (servidor público de demonstração).
 - **Busca de endereços:** [Photon](https://photon.komoot.io), da Komoot.
 - **Renderização:** [MapLibre GL JS](https://maplibre.org) (BSD-3-Clause).
-- **Cores dos temas:** medidas em capturas de tela dos jogos (`referencias/paletas.md`). As
-  capturas não fazem parte do repositório; ícones e marcadores são desenhos próprios.
+- **Cores dos temas:** medidas em capturas de tela dos jogos (`referencias/paletas.md`); o
+  Minecraft (mapa) usa a tabela de cores do item mapa da [Minecraft Wiki](https://minecraft.wiki/w/Map_item_format).
+  As capturas não fazem parte do repositório. Ícones e marcadores são desenhos próprios, exceto
+  os ícones de pontos de interesse do Minecraft, recriações dos itens do jogo escolhidas pelo dono
+  do projeto (`referencias/icones-mc/`).
 - **Curvas de nível (Hyrule):** elevação do [Mapterhorn](https://mapterhorn.com/attribution);
   isolinhas geradas por [maplibre-contour](https://github.com/onthegomap/maplibre-contour)
   (BSD-3-Clause).

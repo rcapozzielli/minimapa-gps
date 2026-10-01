@@ -1,14 +1,23 @@
-// Folha "themes" (título "Mapas"): grade de cartões, um por tema, com uma miniatura
-// desenhada em SVG a partir de `preview` (chão, ruas, um trecho de rota e o destino).
-// Tocar num cartão troca o tema e fecha a folha. Funciona com qualquer número de
-// temas: tudo vem da lista THEMES de src/map/themes.ts.
+// Folha "themes" (título "Mapas"): faixa horizontal de cartões, um por tema, na parte de baixo.
+// A miniatura é uma captura real do tema (public/miniaturas/<tema>.webp, gerada por
+// referencias/tools/miniaturas.py); se faltar, cai num desenho SVG feito a partir de `preview`.
+// Tocar num cartão aplica o tema no mapa ao fundo (prévia ao vivo) e a folha continua aberta;
+// ela fecha pela alça, pelo Esc, pelo botão Camadas ou tocando no mapa. Funciona com qualquer
+// número de temas: tudo vem da lista THEMES de src/map/themes.ts.
 import type * as maplibregl from 'maplibre-gl';
-import { setState, subscribe, type CameraMapa, type CorJogador } from '../state';
-import { THEMES, getTargetThemeId, getThemeMeta, setTheme, type ThemePreview } from '../map/themes';
+import { getState, setState, subscribe, type CameraMapa, type CorJogador } from '../state';
+import {
+  THEMES,
+  getTargetThemeId,
+  getThemeMeta,
+  onThemeApplied,
+  setTheme,
+  type ThemePreview,
+} from '../map/themes';
 import { createSheet } from './sheet';
 import { toast } from './buttons';
 
-/** Miniatura: quarteirões com ruas, uma avenida e a rota com o destino. */
+/** Miniatura de reserva (tema sem captura): quarteirões com ruas, uma avenida e a rota com o destino. */
 function thumbnail(p: ThemePreview): string {
   return `
 <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -39,12 +48,16 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
     card.className = 'theme-card';
     card.setAttribute('role', 'radio');
     card.dataset.theme = t.id;
-    card.innerHTML = `<span class="theme-thumb">${thumbnail(t.preview)}</span><span class="theme-name"></span>`;
+    card.innerHTML = `<span class="theme-thumb"><img alt="" loading="lazy" decoding="async"></span><span class="theme-name"></span>`;
     card.querySelector('.theme-name')!.textContent = t.label;
+    const thumb = card.querySelector<HTMLElement>('.theme-thumb')!;
+    const img = thumb.querySelector('img')!;
+    img.addEventListener('error', () => (thumb.innerHTML = thumbnail(t.preview)), { once: true });
+    img.src = `${import.meta.env.BASE_URL}miniaturas/${t.id}.webp`;
     card.addEventListener('click', () => {
-      setState({ sheet: null });
       if (t.id === getTargetThemeId()) return;
       setTheme(map, t.id).catch(() => toast(root, `Não consegui carregar o mapa ${t.label}.`));
+      marcar(); // o selo muda na hora; as opções do tema, quando ele terminar de carregar
     });
     return card;
   });
@@ -53,8 +66,8 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
   const cores = createCorJogador(sheet.body);
   const camera = createCameraMapa(sheet.body);
 
-  // Ao abrir, marca o tema atual e mostra a escolha de cor só nos temas que a usam.
-  sheet.onOpen(() => {
+  // Marca o tema escolhido e mostra as opções (Personagem, Câmera) só nos temas que as usam.
+  const marcar = () => {
     const current = getTargetThemeId();
     for (const card of cards) {
       const on = card.dataset.theme === current;
@@ -63,6 +76,18 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
     }
     cores.hidden = !SKINS_COM_COR.has(getThemeMeta().skin ?? '');
     camera.hidden = !getThemeMeta().cameraFiel;
+    // Com a faixa aberta, o cartão escolhido fica visível (só rola a faixa, não a página).
+    const atual = cards.find((c) => c.classList.contains('is-current'));
+    if (atual && getState().sheet === 'themes') {
+      grid.scrollTo({ left: atual.offsetLeft - (grid.clientWidth - atual.offsetWidth) / 2, behavior: 'smooth' });
+    }
+  };
+  sheet.onOpen(marcar);
+  onThemeApplied(marcar);
+
+  // Tocar no mapa fecha a faixa (o mapa ao fundo é a prévia do tema escolhido).
+  map.on('click', () => {
+    if (getState().sheet === 'themes') setState({ sheet: null });
   });
 }
 

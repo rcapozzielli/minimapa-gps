@@ -17,7 +17,14 @@ import { cumulativeDistances, distance, projectOnLine } from '../geo/math';
 const INTERVALO_MS = 1000;
 /** Rua mais próxima só vale se estiver até esta distância (senão, não mostramos rua). */
 const RAIO_RUA_M = 40;
+/** O ponto da rua mais próximo de você conta como túnel se estiver a menos disto de um túnel. */
+const TUNEL_M = 3;
 const CLASSES_BAIRRO = new Set(['neighbourhood', 'suburb', 'quarter']);
+/**
+ * Só ruas por onde passam carros. Ficam de fora `service` (passagens, acessos de garagem),
+ * `track`, `path` (calçadas, caminhos de pedestre) etc.
+ */
+const CLASSES_DE_CARRO = new Set(['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'minor']);
 
 /**
  * Memória de bairros já vistos (nome -> ponto). O esquema OpenMapTiles não tem o contorno dos
@@ -202,6 +209,7 @@ function bairroMaisProximo(pos: LngLat): string | undefined {
 
 function ruaAtual(map: maplibregl.Map, pos: LngLat): string | undefined {
   // Navegando: a rua em que você está é a do trecho atual da rota (o passo ANTES da próxima manobra).
+  // Trecho sem nome: cai na rua de carro mais próxima, como fora da navegação.
   const { navigating, nav, route } = getState();
   if (navigating && nav && route) {
     const nome = route.steps[Math.max(0, nav.stepIndex - 1)]?.name;
@@ -209,17 +217,46 @@ function ruaAtual(map: maplibregl.Map, pos: LngLat): string | undefined {
   }
   const fonte = fonteVetorial(map);
   if (!fonte) return;
-  let melhor: { nome: string; d: number } | undefined;
+  // A transportation_name (que tem os nomes) não diz o que é túnel; a transportation diz.
+  // Só túneis de carro: o metrô passa por baixo de avenidas inteiras (a Linha 2, sob a Paulista).
+  const tuneis = linhasDe(
+    map
+      .querySourceFeatures(fonte, { sourceLayer: 'transportation' })
+      .filter((f) => f.properties?.brunnel === 'tunnel' && CLASSES_DE_CARRO.has(f.properties?.class)),
+  );
+  const pertoDeTunel = (ponto: LngLat) =>
+    tuneis.some((linha) => projectOnLine(ponto, linha, cumulativeDistances(linha)).dist < TUNEL_M);
+  // Um trecho é túnel se o ponto mais próximo E os pontos 8 m antes e depois (ao longo da rua)
+  // estão sobre um túnel. Só o ponto do meio não basta: uma rua que CRUZA por cima de um túnel
+  // também encosta nele, mas só no cruzamento.
+  const ehTunel = (c: { ponto: LngLat; a: LngLat; b: LngLat }) => {
+    const len = distance(c.a, c.b);
+    const k = len > 0 ? Math.min(1, 8 / len) : 0;
+    const passo: LngLat = [(c.b[0] - c.a[0]) * k, (c.b[1] - c.a[1]) * k];
+    const antes: LngLat = [c.ponto[0] - passo[0], c.ponto[1] - passo[1]];
+    const depois: LngLat = [c.ponto[0] + passo[0], c.ponto[1] + passo[1]];
+    return [c.ponto, antes, depois].every(pertoDeTunel);
+  };
+  // Candidatas mais próximas primeiro; a primeira que não for túnel é a rua atual.
+  const candidatas: Array<{ nome: string; d: number; ponto: LngLat; a: LngLat; b: LngLat }> = [];
   for (const f of map.querySourceFeatures(fonte, { sourceLayer: 'transportation_name' })) {
+    if (!CLASSES_DE_CARRO.has(f.properties?.class)) continue;
     const nome = nomeDe(f.properties);
     if (!nome) continue;
-    const g = f.geometry;
-    const linhas = g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : [];
-    for (const linha of linhas as LngLat[][]) {
-      if (linha.length < 2) continue;
-      const d = projectOnLine(pos, linha, cumulativeDistances(linha)).dist;
-      if (d < RAIO_RUA_M && (!melhor || d < melhor.d)) melhor = { nome, d };
+    for (const linha of linhasDe([f])) {
+      const { dist, point, seg } = projectOnLine(pos, linha, cumulativeDistances(linha));
+      if (dist < RAIO_RUA_M) candidatas.push({ nome, d: dist, ponto: point, a: linha[seg], b: linha[seg + 1] });
     }
   }
-  return melhor?.nome;
+  candidatas.sort((a, b) => a.d - b.d);
+  return candidatas.find((c) => !ehTunel(c))?.nome;
+}
+
+/** Linhas (listas de coordenadas) das feições, de LineString ou MultiLineString. */
+function linhasDe(feicoes: Array<{ geometry: GeoJSON.Geometry }>): LngLat[][] {
+  return feicoes.flatMap((f) => {
+    const g = f.geometry;
+    const linhas = g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : [];
+    return (linhas as LngLat[][]).filter((l) => l.length >= 2);
+  });
 }

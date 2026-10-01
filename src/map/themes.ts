@@ -331,6 +331,56 @@ function pedestresSoNoZ17(style: maplibregl.StyleSpecification): void {
   }
 }
 
+/**
+ * Túneis discretos, em todo tema: as camadas de rua deixam de desenhar túneis (que cruzavam
+ * quadras e confundiam o caminho), e uma camada só, tracejada e fraca, desenha os túneis de
+ * carro ABAIXO das ruas. A rota (routeLayer.ts) continua por cima, então um trajeto que passa
+ * por um túnel continua visível.
+ * Só mexe em filtros no formato de expressão (todos os temas atuais, inclusive a base do
+ * sickmaps); um filtro no formato antigo não pode ser misturado com expressões e fica como está.
+ */
+const CLASSES_DE_CARRO = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'minor'];
+const OPERADORES_ANTIGOS = new Set(['has', '!has', 'in', '!in', 'none', '==', '!=', '<', '<=', '>', '>=']);
+
+function filtroAntigo(f: unknown): boolean {
+  if (!Array.isArray(f)) return false;
+  const [op, a] = f;
+  if (op === 'all' || op === 'any') return f.slice(1).some(filtroAntigo);
+  // Formato antigo: ["==", "class", "x"], ["in", "class", ...], ["has", "name"]... (chave como texto).
+  return OPERADORES_ANTIGOS.has(op) && typeof a === 'string' && !(op === 'in' && f.length === 3 && Array.isArray(f[2]));
+}
+
+function tuneisDiscretos(style: maplibregl.StyleSpecification): void {
+  let primeiraRua = -1;
+  let corDaRua: unknown;
+  style.layers.forEach((layer, i) => {
+    if (layer.type !== 'line' || layer['source-layer'] !== 'transportation') return;
+    if (filtroAntigo(layer.filter)) return;
+    const naoTunel: maplibregl.ExpressionSpecification = ['!=', ['get', 'brunnel'], 'tunnel'];
+    layer.filter = (layer.filter ? ['all', naoTunel, layer.filter] : naoTunel) as maplibregl.FilterSpecification;
+    if (primeiraRua === -1) primeiraRua = i;
+    const cor = layer.paint?.['line-color'];
+    if (corDaRua === undefined && typeof cor === 'string' && !layer.id.includes('casing')) corDaRua = cor;
+  });
+  if (primeiraRua === -1) return;
+  const fonte = (style.layers[primeiraRua] as maplibregl.LineLayerSpecification).source;
+  style.layers.splice(primeiraRua, 0, {
+    id: 'tuneis',
+    type: 'line',
+    source: fonte,
+    'source-layer': 'transportation',
+    minzoom: 12,
+    filter: ['all', ['==', ['get', 'brunnel'], 'tunnel'], ['match', ['get', 'class'], CLASSES_DE_CARRO, true, false]],
+    layout: { 'line-cap': 'butt' },
+    paint: {
+      'line-color': typeof corDaRua === 'string' ? corDaRua : '#888888',
+      'line-opacity': 0.3,
+      'line-width': ['interpolate', ['exponential', 1.5], ['zoom'], 12, 1, 18, 6],
+      'line-dasharray': [2, 2],
+    },
+  });
+}
+
 // FONTES DOS RÓTULOS: um tema JSON SEM `glyphs` desenha os rótulos com as fontes da própria
 // página (src/styles/fonts.css), no modo de fontes locais do MapLibre (GL JS >= 5.11), que já
 // espera a fonte carregar antes de desenhar. Em `text-font` use SÓ o nome exato da família CSS
@@ -538,6 +588,7 @@ export async function setTheme(map: maplibregl.Map, id: string): Promise<void> {
   try {
     style = await theme.load();
     pedestresSoNoZ17(style);
+    tuneisDiscretos(style);
   } catch (err) {
     if (token === switchToken) requestedId = null; // falhou: o alvo volta a ser o tema atual
     throw err;

@@ -1,8 +1,9 @@
 // Coluna de botões do mapa, à direita, logo abaixo da busca (estilo Google Maps):
-//  - "Camadas": abre a folha de temas ('themes');
+//  - "Camadas": abre (ou fecha) a faixa de temas ('themes');
 //  - bússola: só aparece com o mapa girado fora do modo seguir; toque = norte para cima;
 //  - pontos de interesse liga/desliga (ícones de restaurantes, postos...; src/map/poiLayer.ts);
-//  - voz liga/desliga: só durante a navegação.
+//  - voz liga/desliga: só durante a navegação;
+//  - Recentralizar: só fora do modo seguir; toque = volta a seguir o jogador.
 import type * as maplibregl from 'maplibre-gl';
 import { getState, setState, subscribe } from '../state';
 import { setMuted } from '../nav/voice';
@@ -29,6 +30,12 @@ const COMPASS_ICON = `
   <path d="M12 22 8 12h8z" fill="currentColor" opacity=".85"/>
 </svg>`;
 
+/** Recentralizar: a seta do jogador. */
+const RECENTER_ICON = `
+<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+  <path d="M12 2 L20 21 L12 16 L4 21 Z" fill="currentColor"/>
+</svg>`;
+
 /** Abaixo disso (graus) o mapa está "de norte para cima" e a bússola some. */
 const BEARING_EPS = 0.5;
 
@@ -41,7 +48,8 @@ export function createMapControls(root: HTMLElement, map: maplibregl.Map): void 
   layers.className = 'fab fab-round';
   layers.setAttribute('aria-label', 'Camadas: escolher o mapa');
   layers.innerHTML = LAYERS_ICON;
-  layers.addEventListener('click', () => setState({ sheet: 'themes' }));
+  // Abre a faixa de mapas; se ela já estiver aberta, fecha.
+  layers.addEventListener('click', () => setState({ sheet: getState().sheet === 'themes' ? null : 'themes' }));
 
   const compass = document.createElement('button');
   compass.className = 'fab fab-round compass';
@@ -72,7 +80,15 @@ export function createMapControls(root: HTMLElement, map: maplibregl.Map): void 
     pois.classList.toggle('is-off', !on);
   };
 
-  col.append(layers, pois, compass, mute);
+  const recenter = document.createElement('button');
+  recenter.className = 'fab fab-round recenter';
+  recenter.setAttribute('aria-label', 'Recentralizar');
+  recenter.title = 'Recentralizar';
+  recenter.innerHTML = RECENTER_ICON;
+  recenter.hidden = getState().following;
+  recenter.addEventListener('click', () => setState({ following: true }));
+
+  col.append(layers, pois, compass, mute, recenter);
 
   // A agulha gira ao contrário do mapa, para apontar sempre para o norte de verdade.
   const updateCompass = () => {
@@ -84,7 +100,10 @@ export function createMapControls(root: HTMLElement, map: maplibregl.Map): void 
   map.on('moveend', updateCompass);
 
   subscribe((s, changed) => {
-    if ('following' in changed) updateCompass();
+    if ('following' in changed) {
+      updateCompass();
+      recenter.hidden = s.following;
+    }
     if ('navigating' in changed) mute.hidden = !s.navigating;
     if ('muted' in changed) renderMute(s.muted);
     if ('poisVisible' in changed) {
