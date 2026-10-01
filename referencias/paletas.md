@@ -125,3 +125,8 @@ regra usada.
 | Caixa "Position": fundo | `#0b1418` | — | detalhe (preto translúcido sobre o mundo) |
 | Caixa "Position": texto | `#ffffff` | — | detalhe |
 | Marcador do jogador | `#eeeeee` | — | detalhe |
+
+> **Ícones de POI (itens do jogo, `scripts/gerar-icones-poi.py`):** usam madeira, quartzo e tijolo
+> desta tabela. As cores dos itens (mel, esmeralda, lava, poção, cookie, frango, coberta da cama),
+> o slot de inventário (`#8b8b8b`, `#373737`, `#ffffff`) e o contorno (`#1e1b18`) **não aparecem na
+> referência**: são derivadas e estão marcadas no script.

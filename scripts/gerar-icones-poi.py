@@ -91,53 +91,157 @@ def zelda(cat: str) -> str:
                    f'<g filter="url(#g)">{glifo(cat, "#3b9aac", 0.72, 7.4, 7.4)}</g>')
 
 
-# ---------- Minecraft: estandarte pixelado, uma cor de lã por categoria ----------
-# Cores medidas no mapa item (paletas.md): tijolo, amarelo, rosa, ciano, terracota, madeira, branco, azul.
+# ---------- Minecraft: um item do jogo por categoria, dentro de um slot de inventário ----------
+# Desenhos próprios em pixel art 16×16 (inspirados nos itens, sem copiar as texturas do jogo).
+# Cores: as que existem em paletas.md (mapa item) vêm de lá; as outras são DERIVADAS (marcadas).
 MC_CORES = {
-    'restaurante': '#782828',
-    'fast-food': '#c2b93c',
-    'bar': '#b86281',
-    'cafe': '#98655d',
-    'loja': '#55a29f',
-    'posto': '#194ed6',
-    'farmacia': '#cccccb',
-    'hotel': '#6f5c37',
+    'K': '#1e1b18',  # contorno do item (derivado)
+    'W': '#a58a52',  # madeira clara (derivado, = MC_MAP.planks em themes.ts)
+    'w': '#6f5c37',  # madeira (paletas.md)
+    'Q': '#cccccb',  # branco / quartzo (paletas.md)
+    'T': '#782828',  # tijolo / vermelho escuro (paletas.md)
+    'G': '#c8dde4',  # vidro (derivado)
 }
-ESTANDARTE = [  # B = mastro/travessa (madeira), X = pano, D = pano escuro (franja)
-    '...B...',
-    'BBBBBBB',
-    '.XXXXX.',
-    '.XXXXX.',
-    '.XXXXX.',
-    '.XXXXX.',
-    '.XDXDX.',
-    '.D.D.D.',
-    '...B...',
-    '...B...',
-]
+SLOT = {'fundo': '#8b8b8b', 'escuro': '#373737', 'claro': '#ffffff'}  # slot de inventário (derivado)
 
-
-def escurecer(hexa: str, f: float = 0.65) -> str:
-    r, g, b = (int(hexa[i:i + 2], 16) for i in (1, 3, 5))
-    return '#%02x%02x%02x' % (int(r * f), int(g * f), int(b * f))
+# '.' = transparente (aparece o fundo do slot). Cada desenho é centralizado no slot.
+MC_ITENS = {
+    # tigela de ensopado: S = ensopado, s = brilho, T = pedaço de cogumelo
+    'restaurante': ({'S': '#9a6532', 's': '#c8955a'}, [
+        '.KKKKKKKKKKKK.',
+        'KSSsSSSSTSsSSK',
+        'KSTSSsSSSSSTSK',
+        'KWWWWWWWWWWWWK',
+        '.KwWWWWWWWWwK.',
+        '.KwwWWWWWWwwK.',
+        '..KwwWWWWwwK..',
+        '...KKwwwwKK...',
+        '.....KKKK.....',
+    ]),
+    # coxa de frango assada: C = carne, c = brilho, d = sombra, Q = osso
+    'fast-food': ({'C': '#b5713a', 'c': '#dba468', 'd': '#7e4a22'}, [
+        '..KKKK.......',
+        '.KCCCCK......',
+        'KCcCCCCK.....',
+        'KCcCCCCK.....',
+        'KCCCCCCK.....',
+        'KCCCCCdK.....',
+        '.KCCCddK.....',
+        '..KdddKK.....',
+        '...KKKQK.....',
+        '......KQK....',
+        '.......KQK.K.',
+        '........KQKQK',
+        '.......KQQQK.',
+        '........KQK..',
+        '.........K...',
+    ]),
+    # garrafa de mel: H = mel, h = brilho, w = rolha
+    'bar': ({'H': '#e3961c', 'h': '#f7d06a'}, [
+        '..KKK..',
+        '..KwK..',
+        '..KGK..',
+        '..KGK..',
+        '.KKGKK.',
+        'KGHHHHK',
+        'KhHHHHK',
+        'KhHHHHK',
+        'KhHHHHK',
+        'KHHHHHK',
+        'KHHHHHK',
+        'KHHHHHK',
+        'KKKKKKK',
+    ]),
+    # cookie: d = massa, D = massa tostada, c = gota de chocolate
+    'cafe': ({'d': '#d39550', 'D': '#a8682e', 'c': '#4a2a14'}, [
+        '....KKKK....',
+        '..KKddddKK..',
+        '.KdDddddcdK.',
+        '.KddcdddddK.',
+        'KddddddDdddK',
+        'KdddDddddcdK',
+        'KdcddddddddK',
+        'KddddcdDdddK',
+        '.KdddddddcK.',
+        '.KdDddcdddK.',
+        '..KKddddKK..',
+        '....KKKK....',
+    ]),
+    # esmeralda: l, L, E, e = do mais claro ao mais escuro
+    'loja': ({'l': '#c8fadc', 'L': '#6be89a', 'E': '#17c454', 'e': '#0b7a34'}, [
+        '.....KK.....',
+        '....KlLK....',
+        '...KlLLEK...',
+        '..KlLLEEeK..',
+        '..KLLEEEeK..',
+        '.KLLEEEEeeK.',
+        '.KLEEEEEeeK.',
+        '..KEEEEeeK..',
+        '..KEEEeeeK..',
+        '...KEEeeK...',
+        '....KeeK....',
+        '.....KK.....',
+    ]),
+    # balde de lava: O = lava, o = lava clara, I = ferro, i = ferro escuro
+    'posto': ({'O': '#e0570e', 'o': '#ffb030', 'I': '#d8d8d8', 'i': '#8e8e8e'}, [
+        'KKKKKKKKKKKK',
+        'KIOoOOOoOOIK',
+        'KIOOOoOOOoIK',
+        '.KIIIIIIIIK.',
+        '.KiIIIIIIiK.',
+        '.KiIIIIIIiK.',
+        '..KiIIIIiK..',
+        '..KiIIIIiK..',
+        '..KiiiiiiK..',
+        '...KKKKKK...',
+    ]),
+    # poção de cura: R = líquido, r = brilho
+    'farmacia': ({'R': '#e0303a', 'r': '#ff9a9a'}, [
+        '....KKKK....',
+        '....KGGK....',
+        '....KGGK....',
+        '...KKGGKK...',
+        '..KGRRRRGK..',
+        '.KGRrRRRRGK.',
+        '.KRrRRRRRRK.',
+        '.KRRRRRRRRK.',
+        '.KRRRRRRRRK.',
+        '..KRRRRRRK..',
+        '...KKKKKK...',
+    ]),
+    # cama vermelha: Q = travesseiro, V = coberta, v = dobra da coberta
+    'hotel': ({'V': '#b0302a', 'v': '#d8524a'}, [
+        'KKKKKKKKKKKKKK',
+        'KQQQQKvVVVVVVK',
+        'KQQQQKvVVVVVVK',
+        'KKKKKKKKKKKKKK',
+        'KWWWWWWWWWWWWK',
+        'KwwwwwwwwwwwwK',
+        'KKKKKKKKKKKKKK',
+        'KwK........KwK',
+        'KKK........KKK',
+    ]),
+}
 
 
 def mc(cat: str) -> str:
-    cor = MC_CORES[cat]
-    cores = {'B': '#6f5c37', 'X': cor, 'D': escurecer(cor)}
-    cel = 3
-    rects = []
-    for y, linha in enumerate(ESTANDARTE):
+    extras, desenho = MC_ITENS[cat]
+    cores = {**MC_CORES, **extras}
+    larg = max(len(l) for l in desenho)
+    x0 = 2 + (16 - larg) // 2  # slot: contorno (1) + bisel (1) + 16 de área útil
+    y0 = 2 + (16 - len(desenho)) // 2
+    rects = [
+        '<rect x="0" y="0" width="20" height="20" fill="#000"/>',
+        f'<rect x="1" y="1" width="18" height="18" fill="{SLOT["claro"]}"/>',
+        f'<rect x="1" y="1" width="17" height="17" fill="{SLOT["escuro"]}"/>',
+        f'<rect x="2" y="2" width="16" height="16" fill="{SLOT["fundo"]}"/>',
+    ]
+    for y, linha in enumerate(desenho):
         for x, ch in enumerate(linha):
             if ch != '.':
-                # contorno preto de 1 pixel: um quadrado preto maior por baixo
-                rects.append(f'<rect x="{x * cel}" y="{y * cel}" width="{cel + 2}" height="{cel + 2}" fill="#000"/>')
-    for y, linha in enumerate(ESTANDARTE):
-        for x, ch in enumerate(linha):
-            if ch != '.':
-                rects.append(f'<rect x="{x * cel + 1}" y="{y * cel + 1}" width="{cel}" height="{cel}" fill="{cores[ch]}"/>')
-    w, h = len(ESTANDARTE[0]) * cel + 2, len(ESTANDARTE) * cel + 2
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
+                rects.append(f'<rect x="{x0 + x}" y="{y0 + y}" width="1" height="1" fill="{cores[ch]}"/>')
+    # 20 "pixels" desenhados em 30 px: com a escala 2 do poiLayer.ts, cada pixel vira 3×3 exatos.
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="30" height="30" '
             f'shape-rendering="crispEdges">{"".join(rects)}</svg>\n')
 
 
