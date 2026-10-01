@@ -216,17 +216,36 @@ function sickmapsTheme(
  *    quadras) ficava preto. Agora o fundo é grama (com textura, ver minecraftEnter).
  *  - Bairros residenciais viram grama também (em vez de grandes manchas de terra).
  *  - Áreas comerciais/industriais ganham uma camada de pedra.
- *  - Prédios: materiais conforme a altura (tábuas, tijolos, tijolos de pedra,
- *    quartzo) e mais baixos (30%, máx. 25 m) para não esconderem a rota.
+ *  - Prédios: mais baixos (30%, máx. 25 m) para não esconderem a rota, em degraus de 3 m
+ *    (o horizonte fica escalonado, como blocos) e com textura de bloco (patterns.ts) conforme
+ *    a altura real. O `id` do prédio alterna o material entre vizinhos da mesma faixa (os
+ *    tiles não dizem o tipo do prédio). Faces chapadas, sem o degradê vertical do MapLibre.
+ *  - Matas (landcover "wood") viram copas de folhas em 3D, como florestas vistas de cima.
  */
 const MC_MAP = {
   grass: '#7fb238', // cor GRASS do item "mapa" do Minecraft
   stone: '#8f8f8f',
-  planks: '#a58a52',
-  bricks: '#96503f',
-  stoneBricks: '#7a7a7a',
-  quartz: '#e9e4d8',
 };
+
+/** Altura de um "degrau" dos prédios (m), depois do achatamento. */
+const DEGRAU_M = 3;
+
+/**
+ * Textura do prédio (patterns.ts) pela altura REAL, alternando pelo `id` entre vizinhos:
+ * casas (< 6 m) de tábuas, pedregulho ou terracota; sobrados e prédios baixos (< 15 m) de
+ * tijolo ou terracota; médios (< 40 m) de tijolo de pedra ou quartzo; altos de vidro ou quartzo.
+ */
+function materialDoPredio(): unknown {
+  const n = ['%', ['to-number', ['id'], 0], 6]; // 0..5, estável por prédio
+  const alterna = (...m: string[]) => ['match', ['%', n, m.length], ...m.slice(1).flatMap((x, i) => [i + 1, x]), m[0]];
+  return [
+    'step', ['coalesce', ['get', 'render_height'], 8],
+    alterna('mc3d-tabuas', 'mc3d-pedregulho', 'mc3d-terracota'),
+    6, alterna('mc3d-tijolo', 'mc3d-terracota'),
+    15, alterna('mc3d-pedra', 'mc3d-quartzo'),
+    40, alterna('mc3d-vidro', 'mc3d-quartzo'),
+  ];
+}
 
 function tuneMinecraft(style: maplibregl.StyleSpecification): void {
   for (const layer of style.layers) {
@@ -240,14 +259,31 @@ function tuneMinecraft(style: maplibregl.StyleSpecification): void {
       const { paint } = layer;
       const h = paint['fill-extrusion-height'];
       const b = paint['fill-extrusion-base'];
-      if (h !== undefined) paint['fill-extrusion-height'] = ['min', 25, ['*', 0.3, h]] as never;
-      if (b !== undefined) paint['fill-extrusion-base'] = ['min', 25, ['*', 0.3, b]] as never;
-      paint['fill-extrusion-color'] = [
-        'step', ['coalesce', ['get', 'render_height'], 8],
-        MC_MAP.planks, 6, MC_MAP.bricks, 15, MC_MAP.stoneBricks, 40, MC_MAP.quartz,
-      ] as never;
+      const degrau = (v: unknown, arred: 'ceil' | 'floor') =>
+        ['*', DEGRAU_M, [arred, ['/', ['min', 25, ['*', 0.3, v]], DEGRAU_M]]];
+      if (h !== undefined) paint['fill-extrusion-height'] = degrau(h, 'ceil') as never;
+      if (b !== undefined) paint['fill-extrusion-base'] = degrau(b, 'floor') as never;
+      delete paint['fill-extrusion-color']; // a textura substitui a cor
+      paint['fill-extrusion-pattern'] = materialDoPredio() as never;
+      paint['fill-extrusion-vertical-gradient'] = false;
     }
   }
+
+  // Copas de folhas nas matas, logo abaixo dos prédios.
+  const buildingIdx = style.layers.findIndex((l) => l.id === 'building');
+  style.layers.splice(buildingIdx === -1 ? style.layers.length : buildingIdx, 0, {
+    id: 'mc_copas',
+    type: 'fill-extrusion',
+    source: 'openmaptiles',
+    'source-layer': 'landcover',
+    minzoom: 13,
+    filter: ['==', ['get', 'class'], 'wood'],
+    paint: {
+      'fill-extrusion-pattern': 'mc3d-folhas',
+      'fill-extrusion-height': 2 * DEGRAU_M,
+      'fill-extrusion-vertical-gradient': false,
+    },
+  });
 
   // Pedra nas áreas comerciais/industriais, logo abaixo da água.
   const waterIdx = style.layers.findIndex((l) => l.id === 'water');
@@ -483,13 +519,17 @@ function applyUiVars(ui: Record<string, string>): void {
  * `background-pattern` sem a imagem pronta simplesmente não desenha o fundo.
  */
 function registrarTexturas(map: maplibregl.Map): void {
+  const registrar = (valor: unknown): void => {
+    // O padrão pode ser uma expressão (ex.: material conforme a altura): procura os nomes dentro dela.
+    if (Array.isArray(valor)) return valor.forEach(registrar);
+    if (typeof valor !== 'string' || map.hasImage(valor)) return;
+    const textura = imagemDeTextura(valor);
+    if (textura) map.addImage(valor, textura);
+  };
   for (const layer of map.getStyle().layers) {
     const paint = ('paint' in layer ? layer.paint : undefined) as Record<string, unknown> | undefined;
-    for (const prop of ['background-pattern', 'fill-pattern', 'line-pattern']) {
-      const id = paint?.[prop];
-      if (typeof id !== 'string' || map.hasImage(id)) continue;
-      const textura = imagemDeTextura(id);
-      if (textura) map.addImage(id, textura);
+    for (const prop of ['background-pattern', 'fill-pattern', 'line-pattern', 'fill-extrusion-pattern']) {
+      registrar(paint?.[prop]);
     }
   }
 }

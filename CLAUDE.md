@@ -64,7 +64,9 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   OpenFreeMap durante a troca (tiles antigos em processamento). É inofensivo.
 - **Texturas (`patterns.ts`)** são registradas no `style.load` (`registrarTexturas`): só o
   resolvedor de imagens faltantes não basta, e um `background-pattern` sem imagem não desenha
-  o fundo (a página aparece por trás).
+  o fundo (a página aparece por trás). Inclui `fill-extrusion-pattern` e procura os nomes
+  dentro de expressões (os prédios do Minecraft 3D escolhem a textura por altura e `id`).
+  Texturas em extrusões custam quadros no Chromium sem janela (SwiftShader); confira no celular.
 - **Classes de HUD no `<html>` são `mostra-<peça>`**, não `hud-<peça>`: os elementos já se
   chamam `hud-<peça>`, e `querySelector('.hud-x')` acharia o `<html>`.
 - **Bairro no HUD:** no zoom de navegação o ponto do bairro (`place`) quase nunca está nos tiles
