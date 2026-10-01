@@ -29,6 +29,11 @@ REFERENCIAS = {
     'hyrule': ('hyrule-totk-mapa.png', (250, 95, 1830, 1000), 24),
     # Minecraft (3840x2160): só o quadro do mapa (sem a moldura e o mundo 3D em volta).
     'minecraft': ('minecraft-mapa-item.png', (1104, 182, 2736, 1814), 24),
+    # Super Mario World (1025x2235, Spriters Resource): quadrante do verão com os caminhos já
+    # revelados (Ilha do Yoshi, Planície Donut, Vanilla Dome por fora).
+    'smw': ('smw-mapa.png', (514, 0, 1025, 512), 24),
+    # Monopoly (2928x2928, Wikimedia Commons, tabuleiro britânico de 2008): o tabuleiro inteiro.
+    'monopoly': ('monopoly-tabuleiro.jpg', (0, 0, 2928, 2928), 20),
 }
 # Minecraft: a moldura de pergaminho é medida à parte (faixa entre o mundo e o mapa).
 MOLDURA_MC = ('minecraft-mapa-item.png', (1030, 110, 2830, 182), 6)

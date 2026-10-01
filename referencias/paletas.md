@@ -154,3 +154,58 @@ tons: base × 180, 220, 255 e 135, dividido por 255 (tom 0 = bloco mais baixo qu
 
 A sombra dos prédios é preto a 29% (escurece o chão para o tom 0, ×0,71). A moldura, a caixa
 Position e o halo dos rótulos continuam com as cores medidas da tabela acima.
+
+## Super Mario World: mapa-múndi (`smw-mapa.png`, recorte 514,0–1025,512)
+
+Fonte: mapa-múndi completo em [The Spriters Resource](https://www.spriters-resource.com/snes/smarioworld/asset/4607/)
+(1025×2235, as quatro versões de estação). O recorte é o quadrante de verão com os caminhos já
+revelados (Ilha do Yoshi, Planície Donut e o lado de fora do Vanilla Dome). É pixel art de paleta
+fechada (26 cores no recorte inteiro): as cores abaixo são **exatas**, contadas pixel a pixel, e
+não agrupadas.
+
+| Elemento | Cor | % área | Medida |
+|---|---|---|---|
+| Água (mar e lagos) | `#4088f8` | 30,4 | área |
+| Ondinhas do mar (arcos de 4 px num ladrilho de 8×8, 12,5% do mar) | `#d8c8a8` | — | detalhe (mesma cor do planalto) |
+| Penhascos (paredões das ilhas) | `#d89860` | 17,7 | área |
+| Grama (topo das ilhas) | `#40d020` | 13,7 | área |
+| Planalto rochoso (topo de pedra) | `#d8c8a8` | 10,7 | área |
+| Contornos (penhasco, árvores, ícones, listras dos paredões) | `#000000` | 10,1 | área |
+| Caminhos (sem contorno, direto sobre a grama) | `#f8e8b0` | 4,3 | área |
+| Verde médio: arbustos, tufos "+" da grama, luz das copas | `#40a820` | 3,7 | área |
+| Verde escuro: copas das árvores, morros | `#408820` | 3,5 | área |
+| Pedra: sombra das rochas, "+" do planalto | `#908060` | 1,9 | área |
+| Pedra: pontos do planalto | `#a89878` | 1,3 | área |
+| Branco (placas, nuvens, espuma) | `#f0f0f0` | 1,3 | área |
+| Água na sombra (sob pontes) | `#203070` | 0,2 | área |
+| Ponto de fase amarelo (fase comum) | `#f8d000` | 0,2 | detalhe (contorno `#000000`) |
+| Ponto de fase vermelho (saída secreta) | `#f80000` | 0,05 | detalhe (contorno `#000000`) |
+| Madeira (escadas, pontes) | `#785030` | 0,1 | área |
+| Pele / bege claro (Yoshi, casas) | `#f0c8a8` | 0,2 | área |
+
+## Monopoly: tabuleiro clássico (`monopoly-tabuleiro.jpg`, 2928×2928 inteira)
+
+Fonte: [Wikimedia Commons, `Monopoly-board.jpg`](https://commons.wikimedia.org/wiki/File:Monopoly-board.jpg)
+(arte digital do tabuleiro britânico de 2008). Os nomes das ruas mudam entre edições, mas os oito
+grupos de cor são os mesmos do tabuleiro clássico. Faixas medidas por `tools/medir.py` (mediana de
+cada faixa inteira; o JPEG dá ±2 por canal).
+
+| Elemento | Cor | % área | Medida |
+|---|---|---|---|
+| Fundo do tabuleiro (verde-claro) | `#d2e2c7` | 78,8 | área / detalhe |
+| Linhas e texto (preto esverdeado) | `#1f1f21` | 3,8 (`#252624`) | detalhe (divisória entre casas) |
+| Grupo marrom | `#784d3c` | 0,7 | detalhe |
+| Grupo azul-claro | `#badbee` | 0,6 | detalhe |
+| Grupo rosa | `#aa3b80` | 0,5 | detalhe |
+| Grupo laranja | `#d58a37` | 1,0 | detalhe |
+| Grupo vermelho | `#bb292c` | 3,0 (com o logo) | detalhe |
+| Grupo amarelo | `#fff039` | 0,7 | detalhe |
+| Grupo verde | `#5fa55d` | 1,0 | detalhe |
+| Grupo azul-escuro | `#2c67a1` | 0,5 | detalhe |
+| "?" da Sorte (laranja) | `#ce7938` | — | detalhe |
+| Cofre (azul-ciano) | `#09a0d9` | 0,2 | detalhe |
+
+> **Derivados (não aparecem no tabuleiro):** branco das ruas e das cartas (o papel das cartas de
+> escritura é branco, mas a referência não tem cartas); verde das casinhas e vermelho dos hotéis
+> (peças de plástico, fora do tabuleiro): usam o verde e o vermelho dos grupos. Cada derivado é
+> marcado assim no JSON do tema.

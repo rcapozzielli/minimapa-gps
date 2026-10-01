@@ -42,6 +42,14 @@ def ciano(p):
     return max(p) - min(p) > 60 and p[2] > p[0]
 
 
+def saturado(p):
+    return max(p) - min(p) > 40
+
+
+def preto(p):
+    return max(p) < 90
+
+
 # (rótulo, arquivo, janela (x0, y0, x1, y1) em pixels da imagem original, filtro)
 MEDIDAS = [
     ('GTA V: verde do HUD ("M" do Michael)', 'gtav-mapa.png', (1855, 545, 1892, 580), verde),
@@ -64,6 +72,23 @@ MEDIDAS = [
     ('Minecraft: fundo da caixa Position', 'minecraft-mapa-item.png', (20, 420, 860, 490), todos),
     ('Minecraft: madeira (vila)', 'minecraft-mapa-item.png', (1440, 590, 1500, 620), todos),
     ('Minecraft: tijolo / telhado vermelho', 'minecraft-mapa-item.png', (2010, 1010, 2050, 1060), todos),
+    # Super Mario World: pixel art de paleta fechada; a mediana devolve a cor exata do jogo.
+    ('SMW: ponto de fase vermelho', 'smw-mapa.png', (596, 227, 606, 235), lambda p: p[0] > 200 and p[1] < 60),
+    ('SMW: ponto de fase amarelo', 'smw-mapa.png', (514, 0, 1025, 512), lambda p: p[0] > 200 and 180 < p[1] < 230 and p[2] < 40),
+    ('SMW: ondinha do mar', 'smw-mapa.png', (944, 400, 1014, 440), lambda p: p[2] < 200),
+    # Monopoly: o meio de cada faixa de cor e de cada ícone (cantos de 1 casa de folga).
+    ('Monopoly: marrom (Whitechapel)', 'monopoly-tabuleiro.jpg', (1845, 2559, 2035, 2615), todos),
+    ('Monopoly: azul-claro (Pentonville)', 'monopoly-tabuleiro.jpg', (410, 2559, 600, 2615), todos),
+    ('Monopoly: rosa (Pall Mall)', 'monopoly-tabuleiro.jpg', (305, 2328, 363, 2518), todos),
+    ('Monopoly: laranja (Vine St)', 'monopoly-tabuleiro.jpg', (305, 410, 363, 600), todos),
+    ('Monopoly: vermelho (Strand)', 'monopoly-tabuleiro.jpg', (410, 310, 600, 363), todos),
+    ('Monopoly: amarelo (Leicester Sq)', 'monopoly-tabuleiro.jpg', (1596, 310, 1792, 363), todos),
+    ('Monopoly: verde (Regent St)', 'monopoly-tabuleiro.jpg', (2553, 410, 2612, 600), todos),
+    ('Monopoly: azul-escuro (Park Lane)', 'monopoly-tabuleiro.jpg', (2553, 1845, 2612, 2035), todos),
+    ('Monopoly: fundo do tabuleiro', 'monopoly-tabuleiro.jpg', (732, 586, 1025, 761), todos),
+    ('Monopoly: linha divisória', 'monopoly-tabuleiro.jpg', (1083, 2635, 1107, 2899), preto),
+    ('Monopoly: "?" laranja da Sorte', 'monopoly-tabuleiro.jpg', (2621, 1640, 2840, 1786), saturado),
+    ('Monopoly: azul do Cofre', 'monopoly-tabuleiro.jpg', (2694, 878, 2840, 1054), saturado),
 ]
 
 
