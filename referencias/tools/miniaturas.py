@@ -1,7 +1,7 @@
 """Gera as miniaturas do seletor de mapas: public/miniaturas/<tema>.webp.
 
-Uma captura real de cada tema, desenhada pelo próprio MapLibre, todas no mesmo lugar e zoom
-(Avenida Paulista), com o marcador do jogador, o pino e a rota no estilo de cada tema. A
+Uma captura real de cada tema, desenhada pelo próprio MapLibre, todas no mesmo lugar e zoom,
+com o marcador do jogador, o pino e a rota no estilo de cada tema. A
 interface e a atribuição ficam escondidas (a atribuição aparece no mapa de verdade, ao fundo).
 
 Rode de novo ao criar ou mudar um tema. Precisa do servidor de dev rodando
@@ -20,12 +20,24 @@ from playwright.sync_api import sync_playwright
 RAIZ = Path(__file__).resolve().parents[2]
 SAIDA = RAIZ / 'public' / 'miniaturas'
 URL = 'https://localhost:5173/'
-POS = (-23.5614, -46.6559)  # jogador (lat, lng), perto do MASP
-DESTINO = [-46.6574, -23.5602]  # [lng, lat], ~200 m: jogador, rota e pino cabem na miniatura
-# Igual para todos os temas (o Minecraft (mapa) limita a inclinação a 0 sozinho): centro no
-# meio do caminho entre o jogador e o destino.
-CAMERA = {'center': [(POS[1] + DESTINO[0]) / 2, (POS[0] + DESTINO[1]) / 2], 'zoom': 16, 'pitch': 45,
-          'bearing': 0, 'padding': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0}}
+# Rota de um endereço a outro (coordenadas do Photon, o mesmo serviço de busca do app).
+# Na mão da rua: o OSRM faz 294 m direto pela Peixoto Gomide (no sentido contrário, ou para
+# outras ruas daqui, as mãos únicas obrigam a dar a volta no quarteirão e a rota não cabe).
+#   jogador: Rua Peixoto Gomide, 707 (CEP 01409-001)
+#   destino: Rua Peixoto Gomide, 996 (CEP 01409-000)
+POS = (-23.56014, -46.656134)  # (lat, lng)
+DESTINO = [-46.658386, -23.561835]  # [lng, lat]
+# Igual para todos os temas (o Minecraft (mapa) limita a inclinação a 0 sozinho). O centro é o
+# meio do traçado da rota, calculado depois que ela chega do OSRM.
+CAMERA = {'zoom': 16, 'pitch': 45, 'bearing': 0, 'padding': {'top': 0, 'bottom': 0, 'left': 0, 'right': 0}}
+CENTRALIZAR = """(c) => {
+  const pts = minimapa.getState().route?.coords ?? [];
+  const lngs = pts.map(p => p[0]), lats = pts.map(p => p[1]);
+  const center = pts.length
+    ? [(Math.min(...lngs) + Math.max(...lngs)) / 2, (Math.min(...lats) + Math.max(...lats)) / 2]
+    : minimapa.getState().position;
+  minimapa.map.jumpTo({ ...c, center });
+}"""
 # 300×200 com escala 1,5 = imagem de 450×300 (cartão de ~150 px em tela de densidade 3).
 TELA = {'width': 300, 'height': 200}
 ESCALA = 1.5
@@ -60,7 +72,7 @@ def main() -> None:
                 DESTINO,
             )
             page.add_style_tag(content='#ui, .maplibregl-ctrl-bottom-right, .maplibregl-popup { display: none !important; }')
-            page.evaluate('c => minimapa.map.jumpTo(c)', CAMERA)
+            page.evaluate(CENTRALIZAR, CAMERA)
             page.wait_for_timeout(500)
             page.wait_for_function(ESPERA_TILES, timeout=30000, polling=250)
             page.wait_for_timeout(1500)  # rótulos e ícones terminam de aparecer
