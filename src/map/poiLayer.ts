@@ -7,6 +7,11 @@
 // Como setStyle() apaga imagens e camadas que não são do tema, tudo é refeito a cada tema
 // aplicado (mesmo padrão do routeLayer.ts). Os ícones aparecem a partir do zoom 15, com a
 // detecção de colisão do próprio MapLibre (um não cobre o outro), abaixo da rota.
+//
+// Aeroportos não estão na camada `poi`: vêm da `aerodrome_label` numa camada nossa à parte, a
+// partir do zoom 11 (são referência de longe). Entram os que têm código IATA (Congonhas está no
+// OSM como class "other") e os internacionais, públicos e regionais; heliportos e pistas
+// particulares ficam de fora.
 import * as maplibregl from 'maplibre-gl';
 import { getState, subscribe } from '../state';
 import { getPoiIcons } from '../skins';
@@ -14,6 +19,10 @@ import { onThemeApplied } from './themes';
 
 const CAMADA = 'poi-icones';
 const ZOOM_MINIMO = 15;
+const CAMADA_AEROPORTOS = 'poi-aeroportos';
+const ZOOM_AEROPORTOS = 11;
+const CLASSES_AEROPORTO = ['international', 'public', 'regional'];
+const CAMADAS = [CAMADA, CAMADA_AEROPORTOS];
 
 /** Categoria do app -> valores de `class` na camada `poi` do OpenMapTiles. */
 const CATEGORIAS: Record<string, string[]> = {
@@ -35,6 +44,7 @@ const NOME_DA_CATEGORIA: Record<string, string> = {
   posto: 'Posto de combustível',
   farmacia: 'Farmácia / hospital',
   hotel: 'Hotel',
+  aeroporto: 'Aeroporto',
 };
 
 /** class do OpenMapTiles -> categoria do app. */
@@ -56,20 +66,25 @@ export function setupPoiLayer(map: maplibregl.Map): void {
     // Se o tema trocou enquanto os ícones eram desenhados, este resultado não vale mais.
     if (minha !== versao || map.getLayer(CAMADA)) return;
     adicionarCamada(map);
+    if (icones.aeroporto) adicionarCamadaAeroportos(map);
   });
 
   subscribe((s, changed) => {
-    if (!('poisVisible' in changed) || !map.getLayer(CAMADA)) return;
-    map.setLayoutProperty(CAMADA, 'visibility', s.poisVisible ? 'visible' : 'none');
+    if (!('poisVisible' in changed)) return;
+    for (const id of CAMADAS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', s.poisVisible ? 'visible' : 'none');
+    }
     if (!s.poisVisible) popup?.remove();
   });
 
   // Tocar num ícone: balão com o nome, no estilo do tema (classe popup-poi + skin).
-  map.on('click', CAMADA, (e: maplibregl.MapLayerMouseEvent) => {
+  const aoTocar = (e: maplibregl.MapLayerMouseEvent) => {
     const f = e.features?.[0];
     if (!f || f.geometry.type !== 'Point') return;
-    const cat = CATEGORIA_DA_CLASSE[f.properties?.class] ?? '';
-    const nome = (f.properties?.['name:pt'] ?? f.properties?.name ?? NOME_DA_CATEGORIA[cat]) as string;
+    const aeroporto = f.layer.id === CAMADA_AEROPORTOS;
+    const cat = aeroporto ? 'aeroporto' : (CATEGORIA_DA_CLASSE[f.properties?.class] ?? '');
+    let nome = (f.properties?.['name:pt'] ?? f.properties?.name ?? NOME_DA_CATEGORIA[cat]) as string;
+    if (aeroporto && f.properties?.iata) nome += ` (${f.properties.iata})`;
     const conteudo = document.createElement('div');
     conteudo.className = 'popup-poi-conteudo';
     const texto = document.createElement('span');
@@ -83,9 +98,12 @@ export function setupPoiLayer(map: maplibregl.Map): void {
       .setLngLat(f.geometry.coordinates as [number, number])
       .setDOMContent(conteudo)
       .addTo(map);
-  });
-  map.on('mouseenter', CAMADA, () => (map.getCanvas().style.cursor = 'pointer'));
-  map.on('mouseleave', CAMADA, () => (map.getCanvas().style.cursor = ''));
+  };
+  for (const id of CAMADAS) {
+    map.on('click', id, aoTocar);
+    map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
+    map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
+  }
 }
 
 function adicionarCamada(map: maplibregl.Map): void {
@@ -113,6 +131,31 @@ function adicionarCamada(map: maplibregl.Map): void {
         'icon-allow-overlap': false,
         'icon-padding': 4,
         'symbol-sort-key': ['coalesce', ['get', 'rank'], 99],
+        visibility: getState().poisVisible ? 'visible' : 'none',
+      },
+    },
+    antesDe,
+  );
+}
+
+/** Aeroportos (camada `aerodrome_label`), também abaixo da rota. */
+function adicionarCamadaAeroportos(map: maplibregl.Map): void {
+  const fontes = map.getStyle().sources;
+  const fonte = fontes.openmaptiles ? 'openmaptiles' : Object.keys(fontes).find((id) => fontes[id].type === 'vector');
+  if (!fonte || map.getLayer(CAMADA_AEROPORTOS)) return;
+  const antesDe = ['route-alt-casing', 'route-glow'].find((id) => map.getLayer(id));
+  map.addLayer(
+    {
+      id: CAMADA_AEROPORTOS,
+      type: 'symbol',
+      source: fonte,
+      'source-layer': 'aerodrome_label',
+      minzoom: ZOOM_AEROPORTOS,
+      filter: ['any', ['has', 'iata'], ['match', ['get', 'class'], CLASSES_AEROPORTO, true, false]],
+      layout: {
+        'icon-image': 'poi-aeroporto',
+        'icon-allow-overlap': false,
+        'icon-padding': 4,
         visibility: getState().poisVisible ? 'visible' : 'none',
       },
     },

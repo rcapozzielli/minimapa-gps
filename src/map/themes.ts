@@ -257,8 +257,10 @@ function tuneMinecraft(style: maplibregl.StyleSpecification): void {
     }
     if (layer.type === 'fill-extrusion' && layer.paint) {
       const { paint } = layer;
-      const h = paint['fill-extrusion-height'];
-      const b = paint['fill-extrusion-base'];
+      // Alturas lidas direto dos tiles: a expressão do sickmaps tem ['*', ['get', 'height'], 3],
+      // que avisa no console quando o prédio não tem `height`.
+      const h = paint['fill-extrusion-height'] && ['coalesce', ['get', 'render_height'], 8];
+      const b = paint['fill-extrusion-base'] && ['coalesce', ['get', 'render_min_height'], 0];
       const degrau = (v: unknown, arred: 'ceil' | 'floor') =>
         ['*', DEGRAU_M, [arred, ['/', ['min', 25, ['*', 0.3, v]], DEGRAU_M]]];
       if (h !== undefined) paint['fill-extrusion-height'] = degrau(h, 'ceil') as never;

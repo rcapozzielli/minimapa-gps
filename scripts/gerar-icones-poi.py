@@ -29,6 +29,8 @@ GLIFOS = {
     'farmacia': '<path d="M9.5 4h5v5.5H20v5h-5.5V20h-5v-5.5H4v-5h5.5z" fill="{c}"/>',
     # cama (hotel)
     'hotel': '<path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="11" r="2" fill="{c}"/>',
+    # avião visto de cima (aeroporto)
+    'aeroporto': '<path d="M12 2c1 0 1.6 1 1.6 2.2V9l7.4 4.4v2.2l-7.4-2.2v4.8l2.4 1.8v1.8L12 21l-4-.8v-1.8l2.4-1.8v-4.8L3 15.6v-2.2L10.4 9V4.2C10.4 3 11 2 12 2z" fill="{c}"/>',
 }
 # GTA V: o hotel é uma casa (o "safehouse" do jogo), em verde.
 CASA = '<path d="M12 3 3 11h2.5v9h13v-9H21z" fill="{c}"/><rect x="10" y="14" width="4" height="6" fill="#0c0c0a"/>'
@@ -61,6 +63,7 @@ SA_CORES = {
     'posto': ('#0e110b', '#f2f2f1'),
     'farmacia': ('#f2f2f1', '#d81e1e'),
     'hotel': ('#386727', '#f2f2f1'),
+    'aeroporto': ('#9f9f9e', '#0e110b'),
 }
 
 

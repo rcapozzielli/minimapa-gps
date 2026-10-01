@@ -30,6 +30,7 @@ ICONES = {
     'posto': ('Lava_Bucket_JE2_BE2.webp', 22.5, -1.1, -1.1, None),
     'farmacia': ('Splash_Potion_of_Healing_JE2.png', 10, 0, 0, None),
     'hotel': ('Cama.gif', 12.05, 2.4, 2.6, (69, 66, 66)),
+    'aeroporto': ('Elytra_29_JE1_BE1.webp', 10, 0, 0, None),
 }
 
 
