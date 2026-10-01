@@ -7,7 +7,8 @@
 //                local (blip), senão a base fica (pino)
 //   poi/*.svg    ícones de pontos de interesse, um por categoria (restaurante, fast-food, bar,
 //                cafe, loja, posto, farmacia, hotel); ver src/map/poiLayer.ts
-//                (scripts/gerar-icones-poi.py gera os das skins atuais)
+//                (scripts/gerar-icones-poi.py gera os das skins atuais; os da mc,
+//                scripts/importar-icones-mc.py)
 // Qualquer arquivo que faltar vem da pasta `padrao/`. Um tema escolhe a skin em
 // metadata.minimapa.skin; themes.ts põe a classe `skin-<id>` no <html>.
 //
