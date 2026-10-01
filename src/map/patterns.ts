@@ -23,6 +23,12 @@ interface Textura {
 export const BLOCO_MC = 0.25;
 
 /**
+ * Super Mario World: desenhado a 1/3 da resolução (1 pixel do SNES = 3 px de tela). Rótulos de
+ * 24 px viram 8 pixels do canvas, a altura da fonte do jogo (e da Press Start 2P).
+ */
+export const BLOCO_SMW = 1 / 3;
+
+/**
  * Cores oficiais do item mapa (minecraft.wiki/w/Map_item_format): cada cor-base tem 4 tons,
  * base × {180, 220, 255, 135} / 255. Tom 0: bloco mais baixo que o vizinho ao norte; 1: mesma
  * altura; 2: mais alto; 3: não aparece no jogo normal.
@@ -118,6 +124,16 @@ const TEXTURAS: Record<string, () => Textura> = {
   'redstone-mc': () => redstoneMc('FIRE'),
   'redstone-apagada-mc': () => redstoneMc('NETHER'),
 
+  // ---------- Super Mario World: 1 pixel do SNES = 1 bloco a BLOCO_SMW, cores exatas (paletas.md) ----------
+  'agua-smw': () => desenhoSmw(AGUA_SMW, { '.': SMW.agua, '#': SMW.onda }),
+  'grama-smw': () => desenhoSmw(GRAMA_SMW, { '.': SMW.grama, '+': SMW.verdeMedio }),
+  'pedra-smw': () => desenhoSmw(PEDRA_SMW, { '.': SMW.pedra, '+': SMW.pedraSombra, ':': SMW.pedraPonto }),
+  'penhasco-smw': () => desenhoSmw(PENHASCO_SMW, { '.': SMW.penhasco, '#': SMW.contorno }),
+  'arvores-smw': () => arvoresSmw(41, 28, 7, true),
+  'parque-smw': () => arvoresSmw(42, 32, 16, false),
+  'rota-smw': () => rotaSmw(SMW.pontoAmarelo),
+  'rota-alt-smw': () => rotaSmw(SMW.pedraSombra),
+
   // Minecraft 3D: blocos nas paredes e telhados (fill-extrusion-pattern), 16×16 como os do jogo.
   // Desenhos próprios. Bases: as cores lisas que os prédios tinham antes (tábuas #a58a52, tijolo
   // #96503f, tijolo de pedra #7a7a7a, quartzo #e9e4d8); terracota e folhas de paletas.md
@@ -209,10 +225,10 @@ export function imagemDeTextura(id: string): Textura | null {
  * coincide com a do canvas) e tudo ficava borrado; ampliada, quase toda amostra cai no meio
  * de um bloco.
  */
-function bloco(w: number, h: number, cor: (x: number, y: number) => Rgb): Textura {
+function bloco(w: number, h: number, cor: (x: number, y: number) => Rgb, fator = BLOCO_MC): Textura {
   const cores: Rgb[] = [];
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cores.push(cor(x, y));
-  const k = Math.round(1 / BLOCO_MC);
+  const k = Math.round(1 / fator);
   return preencher(w * k, h * k, (x, y) => cores[Math.floor(y / k) * w + Math.floor(x / k)]);
 }
 
@@ -258,4 +274,91 @@ function copasMc(semente: number, lado: number, passo: number, denso: boolean): 
 function redstoneMc(base: 'FIRE' | 'NETHER'): Textura {
   const desenho = ['31302312', '21330132']; // tom de cada bloco (2 = aceso, 0 = médio, 3 = escuro)
   return bloco(8, 2, (x, y) => tomMc(base, Number(desenho[y][x]) as 0 | 1 | 2 | 3));
+}
+
+// ---------- Super Mario World ----------
+
+/** Cores exatas do mapa-múndi (referencias/paletas.md: pixel art de paleta fechada). */
+export const SMW = {
+  agua: hex('#4088f8'),
+  onda: hex('#d8c8a8'), // as ondinhas do mar têm a cor do planalto
+  grama: hex('#40d020'),
+  verdeMedio: hex('#40a820'),
+  verdeEscuro: hex('#408820'),
+  penhasco: hex('#d89860'),
+  pedra: hex('#d8c8a8'),
+  pedraSombra: hex('#908060'),
+  pedraPonto: hex('#a89878'),
+  caminho: hex('#f8e8b0'),
+  contorno: hex('#000000'),
+  pontoAmarelo: hex('#f8d000'),
+} satisfies Record<string, Rgb>;
+
+// Desenhos em texto: cada caractere é 1 pixel do SNES (1 bloco); a legenda diz a cor.
+// Mar: o ladrilho de 8×8 medido na referência (arcos de 4 pixels desencontrados).
+const AGUA_SMW = ['........', '...##...', '..#..#..', '........', '........', '##......', '..#....#', '........'];
+// Grama: tufos em "+" espalhados (desenho próprio, com o verde médio dos tufos da referência).
+const GRAMA_SMW = [
+  '................', '................', '...+............', '..+++...........', '...+............', '................',
+  '................', '................', '................', '................', '...........+....', '..........+++...',
+  '...........+....', '................', '................', '................',
+];
+// Planalto rochoso: "+" na sombra da pedra e pontos soltos.
+const PEDRA_SMW = [
+  '................', '..+.........:...', '.+++............', '..+.............', '................', '.......:........',
+  '................', '................', '................', '..........+.....', '...:.....+++....', '..........+.....',
+  '................', '................', '.............:..', '................',
+];
+// Penhasco: paredão laranja-terra com rachaduras pretas verticais de tamanhos diferentes.
+const PENHASCO_SMW = [
+  '....#...........', '....#...........', '....#.......#...', '....#.......#...', '....#.......#...', '....#.......#...',
+  '............#...', '............#...', '............#...', '..#.........#...', '..#.............', '..#.............',
+  '..#.......#.....', '..#.......#.....', '..........#.....', '..........#.....',
+];
+// Árvore redonda de 8×8 com contorno preto, luz no alto à esquerda ('.' = deixa o fundo).
+const ARVORE_SMW = ['..####..', '.#mmmd#.', '#mmmddd#', '#mmdddd#', '#mddddd#', '#dddddd#', '.#dddd#.', '..####..'];
+// Ponto de fase de 8×6 com contorno preto.
+const PONTO_SMW = ['..####..', '.#yyyy#.', '#yyyyyy#', '#yyyyyy#', '.#yyyy#.', '..####..'];
+
+function desenhoSmw(desenho: string[], cores: Record<string, Rgb>): Textura {
+  return bloco(desenho[0].length, desenho.length, (x, y) => cores[desenho[y][x]], BLOCO_SMW);
+}
+
+/**
+ * Árvores redondas: uma a cada `passo` pixels, com as fileiras alternadas (meio passo) e um
+ * pequeno deslocamento aleatório. `denso` (matas): as copas se encostam, com verde-escuro nos
+ * vãos; senão (parques), ficam soltas sobre a grama com tufos.
+ */
+function arvoresSmw(semente: number, lado: number, passo: number, denso: boolean): Textura {
+  const rnd = aleatorio(semente);
+  const px: Rgb[] = Array.from({ length: lado * lado }, (_, i) =>
+    denso ? SMW.verdeEscuro : GRAMA_SMW[Math.floor(i / lado) % 16][(i % lado) % 16] === '+' ? SMW.verdeMedio : SMW.grama,
+  );
+  const cores: Record<string, Rgb> = { '#': SMW.contorno, m: SMW.verdeMedio, d: SMW.verdeEscuro };
+  const folga = Math.max(1, passo - ARVORE_SMW.length); // quanto cada árvore pode "sair do lugar"
+  for (let gy = 0, fileira = 0; gy < lado; gy += passo, fileira++) {
+    for (let gx = 0; gx < lado; gx += passo) {
+      const cx = gx + (fileira % 2) * Math.floor(passo / 2) + Math.floor(rnd() * folga);
+      const cy = gy + Math.floor(rnd() * folga);
+      ARVORE_SMW.forEach((linha, dy) =>
+        [...linha].forEach((c, dx) => {
+          if (c === '.') return;
+          px[((cy + dy) % lado) * lado + ((cx + dx) % lado)] = cores[c]; // "dá a volta": sem emenda
+        }),
+      );
+    }
+  }
+  return bloco(lado, lado, (x, y) => px[y * lado + x], BLOCO_SMW);
+}
+
+/**
+ * Rota do SMW: caminho creme com bordas pretas e uma fileira de pontos de fase (a rota é
+ * "o caminho até a próxima fase"). 8 pixels de largura; um ponto a cada 12 pixels.
+ */
+function rotaSmw(corPonto: Rgb): Textura {
+  return bloco(12, 8, (x, y) => {
+    if (y === 0 || y === 7) return SMW.contorno;
+    const c = PONTO_SMW[y - 1][x - 2] ?? '.';
+    return c === '#' ? SMW.contorno : c === 'y' ? corPonto : SMW.caminho;
+  }, BLOCO_SMW);
 }

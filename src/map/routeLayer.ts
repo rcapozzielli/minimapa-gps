@@ -5,9 +5,10 @@
 // Alternativas (antes de navegar): cinza, mais finas e ABAIXO da rota escolhida, para
 // a hierarquia ficar clara (a escolhida sempre por cima). Tocar numa delas a escolhe.
 //
-// Estilo "redstone" (Minecraft (mapa)): a rota é pó de redstone pixelado de 2 blocos, sem
-// brilho nem contorno (as camadas existem, invisíveis, para os ids continuarem valendo);
-// as alternativas são redstone apagada.
+// Rotas desenhadas com textura (`estilo` no metadado; ver ROTAS_COM_TEXTURA): sem brilho nem
+// contorno (as camadas existem, invisíveis, para os ids continuarem valendo).
+//  - "redstone" (Minecraft (mapa)): pó de redstone pixelado de 2 blocos; alternativas apagadas.
+//  - "smw" (Super Mario World): caminho com pontos de fase amarelos; alternativas com pontos de pedra.
 import * as maplibregl from 'maplibre-gl';
 import { getState, setState, subscribe } from '../state';
 import { getThemeMeta, onThemeApplied } from './themes';
@@ -95,22 +96,22 @@ function addLayers(map: maplibregl.Map): void {
 
   // Todas entram "antes de beforeId", na ordem em que são adicionadas: primeiro as
   // alternativas (ficam por baixo), depois a rota escolhida (fica por cima).
-  const redstone = c.estilo === 'redstone';
-  if (redstone) for (const id of ['redstone-mc', 'redstone-apagada-mc']) garantirTextura(map, id);
-  const linhaRedstone = (textura: string) => ({ 'line-pattern': textura, 'line-width': REDSTONE_PX });
+  const textura = c.estilo ? ROTAS_COM_TEXTURA[c.estilo] : undefined;
+  if (textura) for (const id of [textura.linha, textura.alternativa]) garantirTextura(map, id);
+  const linhaTexturizada = (id: string) => ({ 'line-pattern': id, 'line-width': textura!.px });
   const invisivel = { 'line-opacity': 0 };
-  const formato = redstone
+  const formato = textura
     ? ({ 'line-cap': 'butt', 'line-join': 'miter' } as const)
     : ({ 'line-cap': 'round', 'line-join': 'round' } as const);
 
   map.addSource(ALT_SOURCE, { type: 'geojson', data: EMPTY });
   const alt = { type: 'line', source: ALT_SOURCE, layout: formato } as const;
   map.addLayer(
-    { ...alt, id: 'route-alt-casing', paint: redstone ? invisivel : { 'line-color': ALT_CASING, 'line-width': width(2) } },
+    { ...alt, id: 'route-alt-casing', paint: textura ? invisivel : { 'line-color': ALT_CASING, 'line-width': width(2) } },
     beforeId,
   );
   map.addLayer(
-    { ...alt, id: 'route-alt-line', paint: redstone ? linhaRedstone('redstone-apagada-mc') : { 'line-color': ALT_COLOR, 'line-width': width(-2) } },
+    { ...alt, id: 'route-alt-line', paint: textura ? linhaTexturizada(textura.alternativa) : { 'line-color': ALT_COLOR, 'line-width': width(-2) } },
     beforeId,
   );
   // Área de toque: larga (≈ 44 px) e transparente. queryRenderedFeatures considera a
@@ -123,21 +124,27 @@ function addLayers(map: maplibregl.Map): void {
     {
       ...common,
       id: 'route-glow',
-      paint: redstone ? invisivel : { 'line-color': c.glow, 'line-width': width(14), 'line-blur': 10, 'line-opacity': 0.45 },
+      paint: textura ? invisivel : { 'line-color': c.glow, 'line-width': width(14), 'line-blur': 10, 'line-opacity': 0.45 },
     },
     beforeId,
   );
-  map.addLayer({ ...common, id: 'route-casing', paint: redstone ? invisivel : { 'line-color': c.casing, 'line-width': width(5) } }, beforeId);
+  map.addLayer({ ...common, id: 'route-casing', paint: textura ? invisivel : { 'line-color': c.casing, 'line-width': width(5) } }, beforeId);
   map.addLayer(
-    { ...common, id: 'route-line', paint: redstone ? linhaRedstone('redstone-mc') : { 'line-color': c.color, 'line-width': width(0) } },
+    { ...common, id: 'route-line', paint: textura ? linhaTexturizada(textura.linha) : { 'line-color': c.color, 'line-width': width(0) } },
     beforeId,
   );
   updateData(map);
   updateAlternatives(map);
 }
 
-/** Redstone: 2 blocos de largura (1 bloco = 4 px de tela no Minecraft (mapa); ver patterns.ts). */
-const REDSTONE_PX = 8;
+/**
+ * Rotas com textura (patterns.ts): a textura da rota escolhida, a das alternativas e a largura
+ * fixa em px de tela (a altura da textura: 2 blocos de 4 px no redstone, 8 pixels de 3 px no SMW).
+ */
+const ROTAS_COM_TEXTURA = {
+  redstone: { linha: 'redstone-mc', alternativa: 'redstone-apagada-mc', px: 8 },
+  smw: { linha: 'rota-smw', alternativa: 'rota-alt-smw', px: 24 },
+} as const;
 
 /** As texturas da rota entram depois do style.load (que só registra as do estilo): garante aqui. */
 function garantirTextura(map: maplibregl.Map, id: string): void {

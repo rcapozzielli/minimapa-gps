@@ -12,6 +12,7 @@ https://openfontlicense.org
 - Pixelify Sans     (@fontsource/pixelify-sans)   SIL OFL 1.1
 - Pirata One        (@fontsource/pirata-one)      SIL OFL 1.1
 - Cinzel            (@fontsource/cinzel)          SIL OFL 1.1
+- Press Start 2P    (@fontsource/press-start-2p)  SIL OFL 1.1
 
 Os direitos autorais de cada fonte pertencem aos seus autores, conforme os
 avisos de copyright incluídos nos pacotes originais (Google Fonts).

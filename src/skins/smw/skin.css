@@ -1,0 +1,8 @@
+/* Skin "smw": Mario World (mapa-múndi do Super Mario World, SNES).
+   Cores exatas de referencias/paletas.md (o bloco "ui" de public/styles/mario-world.json). */
+
+/* O mapa é desenhado a 1/3 da resolução (BLOCO_SMW, themes.ts) e ampliado sem suavizar.
+   A classe pixelado-smw vai no contêiner do mapa (containerClass do mario-world.json). */
+.pixelado-smw .maplibregl-canvas {
+  image-rendering: pixelated;
+}

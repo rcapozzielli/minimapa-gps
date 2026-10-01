@@ -21,13 +21,13 @@ import {
   type GameMapTheme,
 } from '@iantroisi/sickmaps';
 import '@iantroisi/sickmaps/css';
-import { BLOCO_MC, hexMc, imagemDeTextura } from './patterns';
+import { BLOCO_MC, BLOCO_SMW, hexMc, imagemDeTextura } from './patterns';
 import { adicionarCurvasDeNivel } from './contornos';
 
 export interface ThemeMeta {
   label: string;
-  /** `estilo: 'redstone'`: rota de pó de redstone pixelado, sem brilho nem contorno (routeLayer.ts). */
-  route: { color: string; casing: string; glow: string; estilo?: 'redstone' };
+  /** `estilo`: rota desenhada com textura, sem brilho nem contorno (ver ROTAS_COM_TEXTURA em routeLayer.ts). */
+  route: { color: string; casing: string; glow: string; estilo?: 'redstone' | 'smw' };
   ui: Record<string, string>;
   /** Classe CSS extra no contêiner do mapa enquanto o tema estiver ativo (ex.: papel envelhecido). */
   containerClass?: string;
@@ -116,7 +116,7 @@ export const THEMES: ThemeInfo[] = [
     'Minecraft (mapa)',
     'minecraft-mapa.json',
     { land: '#6d9930', road: '#606060', route: '#ff0000', accent: '#2f6b1f' },
-    { ajustar: prediosMinecraftMapa, enter: minecraftMapaEnter },
+    { ajustar: prediosMinecraftMapa, enter: mapaPixelado(BLOCO_MC, { so2d: true }) },
   ),
   // San Andreas: tema JSON próprio (antes era o do sickmaps, com a lógica invertida:
   // ruas claras sobre fundo escuro). Cores medidas em referencias/sa-mapa.png.
@@ -133,6 +133,15 @@ export const THEMES: ThemeInfo[] = [
     'hyrule.json',
     { land: '#252729', road: '#a39d7b', route: '#3b9aac', accent: '#584d20' },
     { ajustar: (style) => adicionarCurvasDeNivel(style, { cor: '#a39d7b', antesDe: 'building' }) },
+  ),
+  // Super Mario World: o mapa-múndi do SNES. Pixelado a 1/3, com a câmera 3D: os prédios viram
+  // "mesas" (paredão de penhasco com tampa de grama ou pedra), como as ilhas do jogo.
+  jsonTheme(
+    'mario-world',
+    'Mario World',
+    'mario-world.json',
+    { land: '#40d020', road: '#f8e8b0', route: '#f8d000', accent: '#f8d000' },
+    { ajustar: prediosSmw, enter: mapaPixelado(BLOCO_SMW) },
   ),
   // Outros temas do sickmaps entram numa linha, ex.:
   // sickmapsTheme('gta-v', { ...MINECRAFT_META, label: 'GTA V (sickmaps)' }, { ...cores }),
@@ -445,22 +454,24 @@ function minecraftEnter(map: maplibregl.Map): () => void {
 }
 
 /**
- * Minecraft (mapa): como o item "mapa" do jogo, que é plano e feito de "pixels" grandes.
- *  - Pixelado: o mapa é desenhado a 1/4 da resolução (BLOCO_MC: 1 bloco = 1 pixel do canvas
- *    = 4 px de tela) e o CSS amplia sem suavizar (image-rendering: pixelated, na classe
- *    moldura-mc do contêiner). Texturas, ícones e rótulos são pensados nessa escala.
- *  - 2D: inclinação máxima 0; a câmera de navegação pede 60°, mas o MapLibre limita a 0.
- *  - Câmera fiel ao jogo (norte para cima, zoom inteiro): opcional, ver camera.ts.
+ * Mapa pixelado (Minecraft (mapa), Super Mario World): desenhado a uma fração da resolução
+ * (`fator`: 1 bloco = 1 pixel do canvas = 1/fator px de tela) e ampliado pelo CSS sem suavizar
+ * (`image-rendering: pixelated`, na containerClass do tema). Texturas, ícones e rótulos são
+ * pensados nessa escala (patterns.ts).
+ * `so2d` (Minecraft (mapa), plano como o item do jogo): inclinação máxima 0; a câmera de
+ * navegação pede 60°, mas o MapLibre limita a 0.
  * Tudo é desfeito ao sair do tema.
  */
-function minecraftMapaEnter(map: maplibregl.Map): () => void {
-  const pitchMaximoAntes = map.getMaxPitch();
-  map.setMaxPitch(0);
-  map.setPixelRatio(BLOCO_MC);
-  return () => {
-    map.setMaxPitch(pitchMaximoAntes);
-    // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
-    map.setPixelRatio(null as unknown as number);
+function mapaPixelado(fator: number, { so2d = false } = {}): (map: maplibregl.Map) => () => void {
+  return (map) => {
+    const pitchMaximoAntes = map.getMaxPitch();
+    if (so2d) map.setMaxPitch(0);
+    map.setPixelRatio(fator);
+    return () => {
+      if (so2d) map.setMaxPitch(pitchMaximoAntes);
+      // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
+      map.setPixelRatio(null as unknown as number);
+    };
   };
 }
 
@@ -505,6 +516,32 @@ function prediosMinecraftMapa(style: maplibregl.StyleSpecification): void {
           'fill-translate': sul(1), 'fill-translate-anchor': 'map' } },
     ];
   });
+  style.layers.splice(i, 1, ...(camadas as unknown as maplibregl.LayerSpecification[]));
+}
+
+/**
+ * Prédios do Super Mario World como as "mesas" das ilhas do jogo: um paredão de penhasco
+ * (textura com rachaduras) e, por cima, uma tampa fina de pedra (como os planaltos rochosos do
+ * jogo) ou, ~1 em 5 pelo `id`, de grama. Pouca grama: vista de cima, a tampa de grama some no chão.
+ * São duas extrusões porque o MapLibre usa a mesma textura no teto e nas paredes: o teto do
+ * paredão fica escondido dentro da tampa. Baixos (30% da altura, máx. 18 m) para não esconder
+ * a rota, em degraus de 3 m como o resto dos temas em blocos.
+ */
+function prediosSmw(style: maplibregl.StyleSpecification): void {
+  const i = style.layers.findIndex((l) => l.id === 'building');
+  if (i === -1) return;
+  const altura = ['*', DEGRAU_M, ['ceil', ['/', ['min', 18, ['*', 0.3, ['coalesce', ['get', 'render_height'], 8]]], DEGRAU_M]]];
+  const base = { type: 'fill-extrusion', source: 'openmaptiles', 'source-layer': 'building', minzoom: 14 } as const;
+  const tampa = 0.6; // espessura da tampa (m)
+  const camadas = [
+    { ...base, id: 'building-penhasco',
+      paint: { 'fill-extrusion-pattern': 'penhasco-smw', 'fill-extrusion-height': ['-', altura, tampa / 2],
+        'fill-extrusion-vertical-gradient': false } },
+    { ...base, id: 'building',
+      paint: { 'fill-extrusion-pattern': ['match', ['%', idDoPredio, 5], 0, 'grama-smw', 'pedra-smw'],
+        'fill-extrusion-base': ['-', altura, tampa], 'fill-extrusion-height': altura,
+        'fill-extrusion-vertical-gradient': false } },
+  ];
   style.layers.splice(i, 1, ...(camadas as unknown as maplibregl.LayerSpecification[]));
 }
 
