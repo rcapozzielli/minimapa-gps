@@ -5,6 +5,9 @@
     "minimapa": {
       "label": "Mario World",
       "skin": "smw",
+      "hud": [
+        "regiao"
+      ],
       "containerClass": "pixelado-smw",
       "route": {
         "color": "#f8d000",
@@ -12,16 +15,17 @@
         "glow": "#f8e8b0",
         "estilo": "smw"
       },
+      "iconesEmBlocos": true,
       "ui": {
-        "bg": "#000000",
-        "fg": "#f0f0f0",
+        "bg": "#f0f0f0",
+        "fg": "#000000",
         "accent": "#f8d000",
         "accent-fg": "#000000",
         "player-fill": "#f80000",
         "player-stroke": "#000000",
-        "font": "'Press Start 2P', 'Pixelify Sans', 'Courier New', monospace"
+        "font": "'Pixelify Sans', 'Courier New', ui-monospace, monospace"
       },
-      "cores": "Cores exatas do mapa-múndi do Super Mario World (referencias/paletas.md, pixel art de paleta fechada). Texturas em src/map/patterns.ts (SMW); mesas (prédios) em themes.ts (prediosSmw). DERIVADAS: ferrovias na cor da madeira das escadas e pontes (#785030); rótulos brancos (#f0f0f0) com contorno preto, as cores das placas do jogo; rota alternativa com pontos na sombra da pedra (#908060). Rótulos em Pixelify Sans de 36 px (12 pixels do canvas): a Press Start 2P, mais parecida com a do jogo, é larga demais para nomes de rua e fica só na interface."
+      "cores": "Cores exatas do mapa-múndi do Super Mario World (referencias/paletas.md, pixel art de paleta fechada). Texturas em src/map/patterns.ts (SMW); mesas (prédios) em themes.ts (prediosSmw). Interface (src/skins/smw): painéis como as placas numeradas das fases (#f0f0f0, contorno #000000), destaque no amarelo do ponto de fase. DERIVADAS: ferrovias na cor da madeira das escadas e pontes (#785030); rótulos brancos (#f0f0f0) com contorno preto, as cores das placas do jogo; rota alternativa com pontos na sombra da pedra (#908060). Rótulos em Pixelify Sans de 36 px (12 pixels do canvas): a Press Start 2P, mais parecida com a do jogo, é larga demais para nomes de rua e fica só na interface."
     }
   },
   "sources": {

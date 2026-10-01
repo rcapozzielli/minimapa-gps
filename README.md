@@ -19,9 +19,10 @@ Navegação GPS no celular com visual de minimapa de jogo de mundo aberto ("GTA 
   cada tema: tocar num deles já troca o mapa ao fundo. Na mesma coluna: bússola (volta o norte
   para cima) e **Recentralizar** (aparece quando você arrasta o mapa).
 - Recalcula a rota sozinho se você sair mais de ~50 m do trajeto.
-- Seis temas, com as cores medidas em capturas dos jogos (`referencias/paletas.md`):
+- Sete temas, com as cores medidas em capturas dos jogos (`referencias/paletas.md`):
   **Los Santos** (GTA V), **San Andreas** (GTA SA), **Red Dead** (RDR2), **Hyrule**
-  (Zelda: Tears of the Kingdom), **Minecraft (mapa)** e **Minecraft 3D**. Cada tema tem a
+  (Zelda: Tears of the Kingdom), **Minecraft (mapa)**, **Minecraft 3D** e **Mario World**
+  (mapa-múndi do Super Mario World, pixelado, com os prédios como as "mesas" das ilhas). Cada tema tem a
   sua fonte, os seus painéis, a sua seta de jogador e o seu HUD (caixa de bairro e rua,
   bússola, nome da região, coordenadas).
 - Ícones de **pontos de interesse** (restaurantes, postos, farmácias, hotéis...) no estilo de
@@ -179,8 +180,9 @@ Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta 
 - **GPS em ambiente fechado** salta bastante; a direção só é confiável em movimento.
 - **Sem orientação de faixas** ("use as duas faixas da esquerda").
 - **Só carro.** O perfil do OSRM público usado é o de carro.
-- **Minecraft 3D** esconde os nomes das ruas (a rua aparece no painel de manobra) e
-  desenha prédios em 3D, o que pesa mais em celulares antigos.
+- **Minecraft 3D** e **Mario World** desenham prédios em 3D com texturas, o que pesa mais em
+  celulares antigos.
+- **Minecraft 3D** esconde os nomes das ruas (a rua aparece no painel de manobra).
 - **Hyrule** baixa dados de elevação para as curvas de nível (~200 KB para cada região de
   ~10 km).
 - **Caixa BAIRRO / RUA (GTA V):** o bairro aparece depois da primeira vez em que o mapa é
@@ -209,11 +211,15 @@ Um tema é **um arquivo de estilo** (`public/styles/<tema>.json`) + **uma pasta 
   No app, trocamos o fundo preto por grama, adicionamos pedra nas áreas urbanas, variamos
   o material dos prédios e reduzimos a altura deles para não esconderem a rota.
   O texto da licença é publicado junto com o app em `public/licenses/sickmaps-LICENSE.txt`.
-- **Fontes da interface:** Oswald, Rye, IM Fell English, Pixelify Sans, Pirata One e Cinzel,
+- **Fontes da interface:** Oswald, Rye, IM Fell English, Pixelify Sans, Pirata One, Cinzel e Press Start 2P,
   via [Fontsource](https://fontsource.org), todas sob a [SIL Open Font License 1.1](https://openfontlicense.org)
   (lista em `public/licenses/fonts-OFL.txt`).
 - **Tema Hyrule:** paleta medida e ícones desenhados para o app, inspirados no mapa de Zelda:
   Tears of the Kingdom; nenhuma arte do jogo é usada.
+- **Tema Mario World:** cores exatas do mapa-múndi do Super Mario World, medidas no mapa publicado
+  no [The Spriters Resource](https://www.spriters-resource.com/snes/smarioworld/asset/4607/) (a
+  imagem não faz parte do repositório). Texturas, seta, pino e ícones são pixel art própria
+  (`scripts/gerar-icones-smw.py`); nenhum sprite do jogo é usado.
 
 Projeto pessoal de fã, sem fins lucrativos e sem relação com a Rockstar Games, a Mojang, a
 Microsoft ou a Nintendo.
