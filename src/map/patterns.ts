@@ -12,7 +12,42 @@ interface Textura {
   width: number;
   height: number;
   data: Uint8Array;
+  /** Pixels da textura por px de tela (addImage). Padrão 1. */
+  pixelRatio?: number;
 }
+
+/**
+ * Minecraft (mapa): o mapa é desenhado a 1/4 da resolução (themes.ts), então 1 "bloco" =
+ * 1 pixel do canvas = 4 px de tela. As texturas do tema são desenhadas em blocos (ver bloco()).
+ */
+export const BLOCO_MC = 0.25;
+
+/**
+ * Cores oficiais do item mapa (minecraft.wiki/w/Map_item_format): cada cor-base tem 4 tons,
+ * base × {180, 220, 255, 135} / 255. Tom 0: bloco mais baixo que o vizinho ao norte; 1: mesma
+ * altura; 2: mais alto; 3: não aparece no jogo normal.
+ */
+export const COR_MAPA_MC = {
+  GRASS: [127, 178, 56],
+  SAND: [247, 233, 163],
+  SNOW: [255, 255, 255],
+  PLANT: [0, 124, 0],
+  STONE: [112, 112, 112],
+  WATER: [64, 64, 255],
+  WOOD: [143, 119, 72],
+  QUARTZ: [255, 252, 245],
+  COLOR_RED: [153, 51, 51],
+  DIRT: [151, 109, 77],
+  FIRE: [255, 0, 0],
+  NETHER: [112, 2, 0],
+} satisfies Record<string, Rgb>;
+const MULT_TOM = [180, 220, 255, 135];
+
+export function tomMc(base: keyof typeof COR_MAPA_MC, tom: 0 | 1 | 2 | 3): Rgb {
+  return COR_MAPA_MC[base].map((c) => Math.floor((c * MULT_TOM[tom]) / 255)) as Rgb;
+}
+export const hexMc = (base: keyof typeof COR_MAPA_MC, tom: 0 | 1 | 2 | 3): string =>
+  '#' + tomMc(base, tom).map((c) => c.toString(16).padStart(2, '0')).join('');
 
 const hex = (h: string): Rgb => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as Rgb;
 
@@ -64,13 +99,24 @@ const TEXTURAS: Record<string, () => Textura> = {
     return preencher(lado, lado, (x, y) => (x === 0 || y === 0 ? pico : x === 1 || y === 1 ? linha : fundo));
   },
 
-  // Minecraft (mapa item): água com pontilhado (dithering) de dois tons medidos:
-  // #053096 (principal) e #0137ce (claro), em xadrez de 2×2.
-  'agua-mc': () => {
-    const a = hex('#053096');
-    const b = hex('#0137ce');
-    return preencher(4, 4, (x, y) => ((x >> 1) + (y >> 1)) % 2 ? b : a);
-  },
+  // ---------- Minecraft (mapa): 1 pixel = 1 bloco, tons oficiais (COR_MAPA_MC) ----------
+  // Ruído com semente: a textura é sempre igual e fica presa à coordenada do mundo (não pisca).
+  // Água: xadrez de dois tons, como o pontilhado de profundidade do jogo.
+  'agua-mc': () => bloco(2, 2, (x, y) => ((x + y) % 2 ? tomMc('WATER', 1) : tomMc('WATER', 0))),
+  'grama-mc': () => ruidoMc(31, 'GRASS', 32),
+  'campo-mc': () => ruidoMc(32, 'GRASS', 32, [0.15, 0.25, 0.6]),
+  'areia-mc': () => ruidoMc(33, 'SAND', 16),
+  'neve-mc': () => ruidoMc(34, 'SNOW', 16, [0.1, 0.8, 0.1]),
+  'pedra-predio-mc': () => ruidoMc(35, 'STONE', 16),
+  'tijolo-mc': () => ruidoMc(36, 'COLOR_RED', 16),
+  'madeira-mc': () => ruidoMc(37, 'WOOD', 16),
+  'quartzo-mc': () => ruidoMc(38, 'QUARTZ', 16, [0.05, 0.75, 0.2]),
+  // Parques: grama com copas de árvore espalhadas; matas: copas encostadas umas nas outras.
+  'parque-mc': () => copasMc(39, 32, 7, false),
+  'folhas-mc': () => copasMc(40, 32, 4, true),
+  // Rota: pó de redstone aceso (FIRE) e apagado (NETHER), 2 blocos de largura.
+  'redstone-mc': () => redstoneMc('FIRE'),
+  'redstone-apagada-mc': () => redstoneMc('NETHER'),
 
   // Minecraft 3D: blocos nas paredes e telhados (fill-extrusion-pattern), 16×16 como os do jogo.
   // Desenhos próprios. Bases: as cores lisas que os prédios tinham antes (tábuas #a58a52, tijolo
@@ -152,4 +198,64 @@ function blocoVidro(concreto: string, vidro: string, reflexo: string, caixilho: 
 /** A textura com esse nome, ou null se o nome não for de uma textura nossa. */
 export function imagemDeTextura(id: string): Textura | null {
   return TEXTURAS[id]?.() ?? null;
+}
+
+// ---------- Minecraft (mapa) ----------
+
+/**
+ * Textura do Minecraft (mapa) desenhada em blocos (`cor` é chamada uma vez por bloco, em ordem).
+ * A imagem sai ampliada: cada bloco vira 4×4 pixels (1/BLOCO_MC), com pixelRatio 1. Com 1 pixel
+ * por bloco, o filtro linear do MapLibre misturava blocos vizinhos (a grade da textura não
+ * coincide com a do canvas) e tudo ficava borrado; ampliada, quase toda amostra cai no meio
+ * de um bloco.
+ */
+function bloco(w: number, h: number, cor: (x: number, y: number) => Rgb): Textura {
+  const cores: Rgb[] = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cores.push(cor(x, y));
+  const k = Math.round(1 / BLOCO_MC);
+  return preencher(w * k, h * k, (x, y) => cores[Math.floor(y / k) * w + Math.floor(x / k)]);
+}
+
+/** Ruído de 3 tons de uma cor oficial; `pesos` = fração dos tons 0, 1 e 2. */
+function ruidoMc(semente: number, base: keyof typeof COR_MAPA_MC, lado: number, pesos = [0.15, 0.7, 0.15]): Textura {
+  const rnd = aleatorio(semente);
+  const tons = [tomMc(base, 0), tomMc(base, 1), tomMc(base, 2)];
+  return bloco(lado, lado, () => {
+    const r = rnd();
+    return r < pesos[0] ? tons[0] : r < pesos[0] + pesos[1] ? tons[1] : tons[2];
+  });
+}
+
+/**
+ * Copas de árvore de 3×3 blocos com o sombreamento do jogo: a fileira de cima (norte) clara,
+ * a do meio no tom normal e a de baixo (sul) escura. Uma copa a cada `passo` blocos, com um
+ * deslocamento aleatório. `denso`: fundo de folhas (mata); senão, grama (parque).
+ */
+function copasMc(semente: number, lado: number, passo: number, denso: boolean): Textura {
+  const rnd = aleatorio(semente);
+  const fundo = denso ? null : ruidoMc(semente + 100, 'GRASS', lado);
+  const px: Rgb[] = Array.from({ length: lado * lado }, (_, i) =>
+    fundo ? (Array.from(fundo.data.slice(i * 4, i * 4 + 3)) as Rgb) : tomMc('PLANT', 0),
+  );
+  for (let gy = 0; gy < lado; gy += passo) {
+    for (let gx = 0; gx < lado; gx += passo) {
+      const cx = gx + Math.floor(rnd() * (passo - 2));
+      const cy = gy + Math.floor(rnd() * (passo - 2));
+      for (let dy = 0; dy < 3; dy++) {
+        for (let dx = 0; dx < 3; dx++) {
+          if (!denso && (dx !== 1 && dy !== 1)) continue; // parque: copa redonda (sem os cantos)
+          const x = (cx + dx) % lado; // "dá a volta": a textura se repete sem emenda
+          const y = (cy + dy) % lado;
+          px[y * lado + x] = tomMc('PLANT', dy === 0 ? 2 : dy === 1 ? 1 : 0);
+        }
+      }
+    }
+  }
+  return bloco(lado, lado, (x, y) => px[y * lado + x]);
+}
+
+/** Pó de redstone: 2 blocos de largura, fundo escuro com pontos acesos. */
+function redstoneMc(base: 'FIRE' | 'NETHER'): Textura {
+  const desenho = ['31302312', '21330132']; // tom de cada bloco (2 = aceso, 0 = médio, 3 = escuro)
+  return bloco(8, 2, (x, y) => tomMc(base, Number(desenho[y][x]) as 0 | 1 | 2 | 3));
 }

@@ -8,6 +8,12 @@ export type LngLat = [number, number];
 /** Cor da seta do jogador nos temas que deixam escolher (GTA V: os três protagonistas). */
 export type CorJogador = 'verde' | 'azul' | 'laranja';
 
+/**
+ * Câmera nos temas que oferecem o modo fiel ao jogo (metadata.minimapa.cameraFiel):
+ * 'fiel' = norte para cima, seta em 16 direções, zoom inteiro; 'normal' = como nos outros temas.
+ */
+export type CameraMapa = 'fiel' | 'normal';
+
 /** Folhas de baixo do app: prévia da rota, seletor de temas, chegada. */
 export type SheetId = 'route' | 'themes' | 'arrived';
 
@@ -41,6 +47,8 @@ export interface AppState {
   sheet: SheetId | null;
   /** Cor escolhida para a seta do jogador (salva no aparelho por src/ui/themePicker.ts). */
   corJogador: CorJogador;
+  /** Câmera escolhida nos temas com modo fiel (salva no aparelho por src/ui/themePicker.ts). */
+  cameraMapa: CameraMapa;
   /** Ícones de pontos de interesse ligados? (salvo no aparelho por src/ui/mapControls.ts) */
   poisVisible: boolean;
   routeLoading: boolean;
@@ -73,6 +81,7 @@ const state: AppState = {
   routeIndex: 0,
   sheet: null,
   corJogador: 'verde',
+  cameraMapa: 'fiel',
   poisVisible: true,
   routeLoading: false,
   routeError: null,

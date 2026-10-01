@@ -843,6 +843,32 @@ body[data-sheet='arrived'] .bottom-stack {
   border-color: var(--ui-fg);
 }
 
+/* Câmera (temas com modo fiel ao jogo, ex.: Minecraft (mapa)): duas opções lado a lado. */
+.camera-mapa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.camera-mapa-titulo {
+  flex: 1;
+  font-weight: 600;
+}
+.camera-mapa-opcao {
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 2px solid var(--ui-fg);
+  background: transparent;
+  color: var(--ui-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.camera-mapa-opcao[aria-checked='true'] {
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent-fg);
+}
+
 /* Bússola (Red Dead): canto superior esquerdo, abaixo da busca (ou do painel de manobra). */
 :root.mostra-bussola .hud-bussola {
   display: block;

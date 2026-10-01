@@ -62,7 +62,9 @@ export function setupPoiLayer(map: maplibregl.Map): void {
     popup?.remove();
     icones = getPoiIcons(meta.skin) ?? {};
     if (!Object.keys(icones).length) return;
-    await Promise.all(Object.entries(icones).map(([cat, svg]) => registrarIcone(map, `poi-${cat}`, svg)));
+    await Promise.all(
+      Object.entries(icones).map(([cat, svg]) => registrarIcone(map, `poi-${cat}`, svg, !!meta.iconesEmBlocos)),
+    );
     // Se o tema trocou enquanto os ícones eram desenhados, este resultado não vale mais.
     if (minha !== versao || map.getLayer(CAMADA)) return;
     adicionarCamada(map);
@@ -166,15 +168,24 @@ function adicionarCamadaAeroportos(map: maplibregl.Map): void {
 /**
  * Desenha o SVG num canvas e registra como imagem do mapa (o MapLibre não usa SVG direto).
  * Ícones em pixel art (shape-rendering="crispEdges") são ampliados sem suavizar.
+ * `emBlocos` (tema pixelado, ex.: Minecraft (mapa)): 1 pixel do ícone (unidade do viewBox) =
+ * 1 pixel do canvas do mapa, que já é desenhado em resolução reduzida.
  */
-async function registrarIcone(map: maplibregl.Map, id: string, svg: string): Promise<void> {
-  const escala = 2; // nitidez em telas de alta densidade
+async function registrarIcone(map: maplibregl.Map, id: string, svg: string, emBlocos: boolean): Promise<void> {
   const img = new Image();
   img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   await img.decode();
+  const viewBox = svg.match(/viewBox="0 0 (\d+) (\d+)"/);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(img.width * escala);
-  canvas.height = Math.round(img.height * escala);
+  let escala = 2; // nitidez em telas de alta densidade
+  if (emBlocos && viewBox) {
+    canvas.width = Number(viewBox[1]);
+    canvas.height = Number(viewBox[2]);
+    escala = map.getPixelRatio();
+  } else {
+    canvas.width = Math.round(img.width * escala);
+    canvas.height = Math.round(img.height * escala);
+  }
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = !svg.includes('crispEdges');
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);

@@ -21,12 +21,13 @@ import {
   type GameMapTheme,
 } from '@iantroisi/sickmaps';
 import '@iantroisi/sickmaps/css';
-import { imagemDeTextura } from './patterns';
+import { BLOCO_MC, hexMc, imagemDeTextura } from './patterns';
 import { adicionarCurvasDeNivel } from './contornos';
 
 export interface ThemeMeta {
   label: string;
-  route: { color: string; casing: string; glow: string };
+  /** `estilo: 'redstone'`: rota de pó de redstone pixelado, sem brilho nem contorno (routeLayer.ts). */
+  route: { color: string; casing: string; glow: string; estilo?: 'redstone' };
   ui: Record<string, string>;
   /** Classe CSS extra no contêiner do mapa enquanto o tema estiver ativo (ex.: papel envelhecido). */
   containerClass?: string;
@@ -39,6 +40,13 @@ export interface ThemeMeta {
    * Cada uma vira a classe `mostra-<peça>` no <html>.
    */
   hud?: string[];
+  /**
+   * O tema oferece a câmera "fiel ao jogo" (norte sempre para cima, seta em passos de 22,5°,
+   * zoom inteiro), que o usuário escolhe no seletor de mapas (ver camera.ts).
+   */
+  cameraFiel?: boolean;
+  /** Ícones de POI em pixel art com 1 pixel do ícone = 1 pixel do canvas (temas pixelados). */
+  iconesEmBlocos?: boolean;
 }
 
 /** Cores para desenhar a miniatura do tema no seletor, sem precisar baixar o estilo. */
@@ -107,8 +115,8 @@ export const THEMES: ThemeInfo[] = [
     'minecraft-mapa',
     'Minecraft (mapa)',
     'minecraft-mapa.json',
-    { land: '#6f904e', road: '#575757', route: '#ff2a1a', accent: '#2f6b1f' },
-    { enter: minecraftMapaEnter },
+    { land: '#6d9930', road: '#606060', route: '#ff0000', accent: '#2f6b1f' },
+    { ajustar: prediosMinecraftMapa, enter: minecraftMapaEnter },
   ),
   // San Andreas: tema JSON próprio (antes era o do sickmaps, com a lógica invertida:
   // ruas claras sobre fundo escuro). Cores medidas em referencias/sa-mapa.png.
@@ -227,6 +235,13 @@ const MC_MAP = {
   stone: '#8f8f8f',
 };
 
+/**
+ * Número estável por prédio, para variar o material entre vizinhos. Os ids dos tiles da
+ * OpenFreeMap terminam sempre em 0 (o id do OSM vezes 10, mais o tipo): sem dividir por 10,
+ * `id % n` só daria múltiplos de 10.
+ */
+const idDoPredio = ['floor', ['/', ['to-number', ['id'], 0], 10]];
+
 /** Altura de um "degrau" dos prédios (m), depois do achatamento. */
 const DEGRAU_M = 3;
 
@@ -236,7 +251,7 @@ const DEGRAU_M = 3;
  * tijolo ou terracota; médios (< 40 m) de tijolo de pedra ou quartzo; altos de vidro ou quartzo.
  */
 function materialDoPredio(): unknown {
-  const n = ['%', ['to-number', ['id'], 0], 6]; // 0..5, estável por prédio
+  const n = ['%', idDoPredio, 6]; // 0..5, estável por prédio
   const alterna = (...m: string[]) => ['match', ['%', n, m.length], ...m.slice(1).flatMap((x, i) => [i + 1, x]), m[0]];
   return [
     'step', ['coalesce', ['get', 'render_height'], 8],
@@ -381,20 +396,66 @@ function minecraftEnter(map: maplibregl.Map): () => void {
 
 /**
  * Minecraft (mapa): como o item "mapa" do jogo, que é plano e feito de "pixels" grandes.
- *  - Pixelado: o mapa é desenhado a meia resolução (pixelRatio 0,5) e o CSS amplia sem
- *    suavizar (image-rendering: pixelated, na classe moldura-mc do contêiner).
+ *  - Pixelado: o mapa é desenhado a 1/4 da resolução (BLOCO_MC: 1 bloco = 1 pixel do canvas
+ *    = 4 px de tela) e o CSS amplia sem suavizar (image-rendering: pixelated, na classe
+ *    moldura-mc do contêiner). Texturas, ícones e rótulos são pensados nessa escala.
  *  - 2D: inclinação máxima 0; a câmera de navegação pede 60°, mas o MapLibre limita a 0.
+ *  - Câmera fiel ao jogo (norte para cima, zoom inteiro): opcional, ver camera.ts.
  * Tudo é desfeito ao sair do tema.
  */
 function minecraftMapaEnter(map: maplibregl.Map): () => void {
   const pitchMaximoAntes = map.getMaxPitch();
   map.setMaxPitch(0);
-  map.setPixelRatio(0.5);
+  map.setPixelRatio(BLOCO_MC);
   return () => {
     map.setMaxPitch(pitchMaximoAntes);
     // null = volta a usar o devicePixelRatio do aparelho (o tipo diz number, mas o MapLibre aceita null).
     map.setPixelRatio(null as unknown as number);
   };
+}
+
+/**
+ * Prédios do Minecraft (mapa) com o sombreamento do item mapa do jogo, onde a cor de cada
+ * bloco depende do vizinho ao norte: mais alto = tom claro, mais baixo = tom escuro.
+ * Para cada faixa de altura, de baixo para cima:
+ *  - sombra: o prédio em preto a 29% (escurece o chão para o tom 0, ×0,71), deslocado para o
+ *    sul tantos blocos quanto a faixa (fill-translate não aceita valor por prédio, daí as faixas);
+ *  - borda: o prédio no tom 2 (claro) do material, no lugar;
+ *  - prédio: com a textura do material, deslocado 1 bloco para o sul. Sobra a faixa clara ao norte.
+ * Faixas da mais baixa para a mais alta: a sombra de um prédio alto cai sobre os baixos.
+ * Material pelo `id` (os tiles não dizem o tipo do prédio): ~65% pedra, 15% tijolo,
+ * 15% madeira, 5% quartzo (branco só como exceção).
+ */
+function prediosMinecraftMapa(style: maplibregl.StyleSpecification): void {
+  const i = style.layers.findIndex((l) => l.id === 'building');
+  if (i === -1) return;
+  const altura = ['coalesce', ['get', 'render_height'], 8];
+  const material = (pedra: string, tijolo: string, madeira: string, quartzo: string) => [
+    'step', ['%', idDoPredio, 20], pedra, 13, tijolo, 16, madeira, 19, quartzo,
+  ];
+  // Deslocamento para o sul em blocos (4 px no zoom 17; acompanha a escala do mapa).
+  const sul = (blocos: number) => [
+    'interpolate', ['exponential', 2], ['zoom'],
+    15, ['literal', [0, blocos]], 17, ['literal', [0, blocos * 4]],
+  ];
+  const base = { type: 'fill', source: 'openmaptiles', 'source-layer': 'building', minzoom: 14 } as const;
+  const faixas: Array<[number, number, number]> = [[0, 6, 1], [6, 15, 2], [15, 40, 3], [40, Infinity, 4]];
+  const camadas = faixas.flatMap(([de, ate, blocos], n) => {
+    const filter = ['all', ['>=', altura, de], ...(ate < Infinity ? [['<', altura, ate]] : [])];
+    return [
+      { ...base, id: `building-sombra-${n}`, filter,
+        paint: { 'fill-color': '#000000', 'fill-opacity': 0.29, 'fill-antialias': false,
+          'fill-translate': sul(1 + blocos), 'fill-translate-anchor': 'map' } },
+      { ...base, id: `building-borda-${n}`, filter,
+        paint: { 'fill-antialias': false,
+          'fill-color': material(hexMc('STONE', 2), hexMc('COLOR_RED', 2), hexMc('WOOD', 2), hexMc('QUARTZ', 2)) } },
+      { ...base, id: n === faixas.length - 1 ? 'building' : `building-${n}`, filter,
+        paint: { 'fill-antialias': false,
+          'fill-pattern': material('pedra-predio-mc', 'tijolo-mc', 'madeira-mc', 'quartzo-mc'),
+          'fill-translate': sul(1), 'fill-translate-anchor': 'map' } },
+    ];
+  });
+  style.layers.splice(i, 1, ...(camadas as unknown as maplibregl.LayerSpecification[]));
 }
 
 // ---------- API usada pelo resto do app ----------
@@ -449,7 +510,7 @@ export function bindThemes(map: maplibregl.Map): void {
   map.setMissingStyleImageResolver((id) => {
     if (map.hasImage(id)) return;
     const textura = imagemDeTextura(id);
-    if (textura) map.addImage(id, textura);
+    if (textura) map.addImage(id, textura, { pixelRatio: textura.pixelRatio ?? 1 });
     else if (id.startsWith('mc_')) map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
   });
 
@@ -526,7 +587,7 @@ function registrarTexturas(map: maplibregl.Map): void {
     if (Array.isArray(valor)) return valor.forEach(registrar);
     if (typeof valor !== 'string' || map.hasImage(valor)) return;
     const textura = imagemDeTextura(valor);
-    if (textura) map.addImage(valor, textura);
+    if (textura) map.addImage(valor, textura, { pixelRatio: textura.pixelRatio ?? 1 });
   };
   for (const layer of map.getStyle().layers) {
     const paint = ('paint' in layer ? layer.paint : undefined) as Record<string, unknown> | undefined;

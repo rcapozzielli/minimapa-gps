@@ -3,7 +3,7 @@
 // Tocar num cartão troca o tema e fecha a folha. Funciona com qualquer número de
 // temas: tudo vem da lista THEMES de src/map/themes.ts.
 import type * as maplibregl from 'maplibre-gl';
-import { setState, subscribe, type CorJogador } from '../state';
+import { setState, subscribe, type CameraMapa, type CorJogador } from '../state';
 import { THEMES, getTargetThemeId, getThemeMeta, setTheme, type ThemePreview } from '../map/themes';
 import { createSheet } from './sheet';
 import { toast } from './buttons';
@@ -51,6 +51,7 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
   grid.append(...cards);
 
   const cores = createCorJogador(sheet.body);
+  const camera = createCameraMapa(sheet.body);
 
   // Ao abrir, marca o tema atual e mostra a escolha de cor só nos temas que a usam.
   sheet.onOpen(() => {
@@ -61,6 +62,7 @@ export function createThemePicker(root: HTMLElement, map: maplibregl.Map): void 
       card.setAttribute('aria-checked', String(on));
     }
     cores.hidden = !SKINS_COM_COR.has(getThemeMeta().skin ?? '');
+    camera.hidden = !getThemeMeta().cameraFiel;
   });
 }
 
@@ -112,5 +114,52 @@ function createCorJogador(parent: HTMLElement): HTMLElement {
   }
   const inicial = CORES.find(([c]) => c === salva)?.[0] ?? 'verde';
   setState({ corJogador: inicial });
+  return linha;
+}
+
+// ---------- Câmera (temas com modo fiel ao jogo) ----------
+// Ex.: Minecraft (mapa). 'fiel' = norte para cima, seta em 16 direções, zoom inteiro;
+// 'normal' = como nos outros temas. Quem aplica é src/map/camera.ts (e player.ts).
+const CAMERAS: Array<[CameraMapa, string]> = [
+  ['fiel', 'Fiel ao jogo'],
+  ['normal', 'Normal'],
+];
+const CHAVE_CAMERA = 'minimapa:camera-mapa';
+
+function createCameraMapa(parent: HTMLElement): HTMLElement {
+  const linha = document.createElement('div');
+  linha.className = 'camera-mapa';
+  linha.setAttribute('role', 'radiogroup');
+  linha.setAttribute('aria-label', 'Câmera');
+  linha.innerHTML = '<span class="camera-mapa-titulo">Câmera</span>';
+  const botoes = CAMERAS.map(([modo, nome]) => {
+    const b = document.createElement('button');
+    b.className = 'camera-mapa-opcao';
+    b.dataset.camera = modo;
+    b.setAttribute('role', 'radio');
+    b.textContent = nome;
+    b.addEventListener('click', () => setState({ cameraMapa: modo }));
+    return b;
+  });
+  linha.append(...botoes);
+  parent.append(linha);
+
+  subscribe((s, changed) => {
+    if (!('cameraMapa' in changed)) return;
+    for (const b of botoes) b.setAttribute('aria-checked', String(b.dataset.camera === s.cameraMapa));
+    try {
+      localStorage.setItem(CHAVE_CAMERA, s.cameraMapa);
+    } catch {
+      /* sem armazenamento: vale só nesta sessão */
+    }
+  });
+
+  let salva: string | null = null;
+  try {
+    salva = localStorage.getItem(CHAVE_CAMERA);
+  } catch {
+    /* sem armazenamento */
+  }
+  setState({ cameraMapa: CAMERAS.find(([m]) => m === salva)?.[0] ?? 'fiel' });
   return linha;
 }

@@ -1,7 +1,11 @@
 // Modo "seguir": a câmera acompanha o jogador, inclinada em 3D e girada
 // na direção do movimento. Arrastar o mapa sai do modo seguir.
+//
+// Câmera fiel ao jogo (temas com metadata.minimapa.cameraFiel, se o usuário escolher 'fiel'):
+// norte sempre para cima (o mapa não gira; só a seta, em player.ts), zoom só em inteiros.
 import * as maplibregl from 'maplibre-gl';
 import { getState, setState, subscribe, type LngLat } from '../state';
+import { getThemeMeta, onThemeApplied } from './themes';
 
 const FOLLOW_PITCH = 60;
 const FOLLOW_ZOOM = 17;
@@ -13,6 +17,13 @@ const FOLLOW_ZOOM = 17;
  */
 let followZoom = FOLLOW_ZOOM;
 
+/** A câmera fiel ao jogo está ligada? (o tema oferece e o usuário escolheu) */
+export function cameraFielAtiva(): boolean {
+  return !!getThemeMeta().cameraFiel && getState().cameraMapa === 'fiel';
+}
+
+const ehInteiro = (z: number) => Math.abs(z - Math.round(z)) < 1e-6;
+
 export function setupCamera(map: maplibregl.Map): void {
   let firstFix = true;
 
@@ -20,12 +31,43 @@ export function setupCamera(map: maplibregl.Map): void {
   map.on('dragstart', (e) => {
     if ('originalEvent' in e && e.originalEvent) setState({ following: false });
   });
-  // Zoom de pinça (ou roda do mouse) vira o novo zoom do modo seguir.
+  // Zoom de pinça (ou roda do mouse) vira o novo zoom do modo seguir (inteiro no modo fiel).
   map.on('zoomend', (e) => {
-    if ('originalEvent' in e && e.originalEvent) followZoom = map.getZoom();
+    if ('originalEvent' in e && e.originalEvent) {
+      followZoom = cameraFielAtiva() ? Math.round(map.getZoom()) : map.getZoom();
+    }
+  });
+  // Modo fiel: ao fim de qualquer movimento, o zoom "encaixa" num inteiro. Gesto do usuário
+  // arredonda; os nossos (ex.: ver a rota inteira) arredondam para baixo, para tudo caber.
+  // Seguindo o jogador, quem cuida é o follow() (o zoom-alvo dele já é inteiro).
+  map.on('moveend', (e) => {
+    const z = map.getZoom();
+    if (!cameraFielAtiva() || ehInteiro(z)) return;
+    const doUsuario = 'originalEvent' in e && !!e.originalEvent;
+    if (getState().following && !doUsuario) return;
+    map.easeTo({ zoom: doUsuario ? Math.round(z) : Math.floor(z), duration: 200 });
   });
 
+  // Liga/desliga o modo fiel ao trocar de tema ou de escolha no seletor de mapas.
+  const aplicarModo = () => {
+    if (cameraFielAtiva()) {
+      map.dragRotate.disable();
+      map.touchZoomRotate.disableRotation();
+      map.keyboard.disableRotation();
+      followZoom = Math.round(followZoom);
+      const z = map.getZoom();
+      if (map.getBearing() !== 0 || !ehInteiro(z)) map.easeTo({ bearing: 0, zoom: Math.round(z), duration: 300 });
+    } else {
+      map.dragRotate.enable();
+      map.touchZoomRotate.enableRotation();
+      map.keyboard.enableRotation();
+    }
+    if (getState().following && getState().position) follow(map, false);
+  };
+  onThemeApplied(aplicarModo);
+
   subscribe((s, changed) => {
+    if ('cameraMapa' in changed) aplicarModo();
     if (!s.position) return;
 
     if (firstFix && changed.position) {
@@ -75,7 +117,7 @@ function follow(map: maplibregl.Map, recentered: boolean): void {
 
   map.easeTo({
     center: position,
-    bearing: heading ?? map.getBearing(),
+    bearing: cameraFielAtiva() ? 0 : (heading ?? map.getBearing()),
     pitch: FOLLOW_PITCH,
     zoom: followZoom,
     padding: { top, bottom: 0, left: 0, right: 0 },

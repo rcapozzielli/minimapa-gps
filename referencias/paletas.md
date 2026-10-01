@@ -128,3 +128,29 @@ regra usada.
 
 > **Ícones de POI:** vêm das imagens escolhidas pelo dono do projeto em `referencias/icones-mc/`
 > (convertidas por `scripts/importar-icones-mc.py`), com as cores originais delas.
+
+## Minecraft (mapa): tabela oficial de cores do item mapa
+
+Desde out/2026 o tema **Minecraft (mapa)** usa a tabela oficial
+([minecraft.wiki/w/Map_item_format](https://minecraft.wiki/w/Map_item_format)), não as cores medidas
+acima (que já eram próximas: grama medida `#6f904e` × tom 1 oficial `#6d9930`). Cada cor-base tem 4
+tons: base × 180, 220, 255 e 135, dividido por 255 (tom 0 = bloco mais baixo que o vizinho ao norte,
+1 = mesma altura, 2 = mais alto, 3 = não usado no jogo). Código: `COR_MAPA_MC` em `src/map/patterns.ts`.
+
+| Uso no tema | Cor do jogo | Base (RGB) |
+|---|---|---|
+| Grama, campos | GRASS | 127, 178, 56 |
+| Árvores (copas) | PLANT | 0, 124, 0 |
+| Água | WATER | 64, 64, 255 |
+| Areia | SAND | 247, 233, 163 |
+| Gelo / neve | SNOW | 255, 255, 255 |
+| Ruas, prédios de pedra, rocha | STONE | 112, 112, 112 |
+| Caminhos | DIRT | 151, 109, 77 |
+| Prédios de tijolo | COLOR_RED | 153, 51, 51 |
+| Prédios de madeira | WOOD | 143, 119, 72 |
+| Prédios de quartzo (exceção) | QUARTZ | 255, 252, 245 |
+| Rota (redstone acesa) | FIRE | 255, 0, 0 |
+| Rota alternativa (apagada) | NETHER | 112, 2, 0 |
+
+A sombra dos prédios é preto a 29% (escurece o chão para o tom 0, ×0,71). A moldura, a caixa
+Position e o halo dos rótulos continuam com as cores medidas da tabela acima.

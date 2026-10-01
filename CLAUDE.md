@@ -24,7 +24,8 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
 - Temas: `src/map/themes.ts`. Há temas JSON (`public/styles/*.json`) e um tema gerado pelo
   sickmaps (Minecraft 3D). Cores da rota e da UI ficam em `metadata.minimapa` de cada estilo.
   As cores dos mapas vêm de `referencias/paletas.md` (medidas nas capturas dos jogos): não
-  chute cor; o que não aparece na referência fica marcado como derivado.
+  chute cor; o que não aparece na referência fica marcado como derivado. Exceção: o Minecraft (mapa)
+  usa a tabela oficial de cores do item mapa (`COR_MAPA_MC` em `patterns.ts`; ver paletas.md).
 - Skins (a "cara de jogo"): `metadata.minimapa.skin` → classe `skin-<id>` no `<html>` + a pasta
   `src/skins/<id>/` (skin.css, player.svg, pin.svg, poi/*.svg), descoberta por
   `import.meta.glob`. Componentes desenham caixas só com as variáveis de forma de
@@ -74,6 +75,17 @@ Contexto para o Claude Code. Visão geral, estrutura, como rodar e como criar te
   afastados (memória) e usa o mais próximo.
 - **Tema 2D (Minecraft (mapa)):** `map.setMaxPitch(0)` no `enter` (a câmera pede 60°, o MapLibre
   limita); desfazer no teardown junto com o `setPixelRatio`.
+- **Minecraft (mapa) a 1/4 (`BLOCO_MC`):** 1 bloco = 1 pixel do canvas = 4 px de tela. Texturas
+  desse tema são desenhadas por bloco e geradas ampliadas (4×4 pixels por bloco, `pixelRatio` 1):
+  com 1 pixel por bloco o filtro linear do MapLibre mistura vizinhos e tudo borra. Ícones
+  (`iconesEmBlocos`) e rótulos (48 px = 12 px no canvas) são pensados nessa escala. Padrões não
+  crescem com o zoom (ficam do mesmo tamanho na tela).
+- **`fill-translate` não aceita valor por feição:** a sombra proporcional à altura do Minecraft
+  (mapa) usa faixas de altura, uma camada por faixa (`prediosMinecraftMapa` em `themes.ts`).
+- **Ids dos prédios nos tiles terminam em 0** (id do OSM × 10): para variar material por
+  prédio, divida por 10 antes do `%` (`idDoPredio` em `themes.ts`).
+- **Câmera fiel ao jogo** (`metadata.minimapa.cameraFiel` + estado `cameraMapa`): `camera.ts`
+  desliga a rotação por gesto e encaixa o zoom em inteiros; ao sair do modo, religa a rotação.
 - **Base path:** o `vite.config.ts` lê `BASE_PATH` (o workflow usa `/minimapa-gps/`). Caminhos
   de arquivos em `public/` no código devem usar `import.meta.env.BASE_URL`.
 

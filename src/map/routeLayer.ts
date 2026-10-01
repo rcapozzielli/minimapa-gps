@@ -4,10 +4,15 @@
 //
 // Alternativas (antes de navegar): cinza, mais finas e ABAIXO da rota escolhida, para
 // a hierarquia ficar clara (a escolhida sempre por cima). Tocar numa delas a escolhe.
+//
+// Estilo "redstone" (Minecraft (mapa)): a rota é pó de redstone pixelado de 2 blocos, sem
+// brilho nem contorno (as camadas existem, invisíveis, para os ids continuarem valendo);
+// as alternativas são redstone apagada.
 import * as maplibregl from 'maplibre-gl';
 import { getState, setState, subscribe } from '../state';
 import { getThemeMeta, onThemeApplied } from './themes';
 import { getSkin } from '../skins';
+import { imagemDeTextura } from './patterns';
 
 const SOURCE = 'route';
 const ALT_SOURCE = 'route-alts';
@@ -90,24 +95,54 @@ function addLayers(map: maplibregl.Map): void {
 
   // Todas entram "antes de beforeId", na ordem em que são adicionadas: primeiro as
   // alternativas (ficam por baixo), depois a rota escolhida (fica por cima).
+  const redstone = c.estilo === 'redstone';
+  if (redstone) for (const id of ['redstone-mc', 'redstone-apagada-mc']) garantirTextura(map, id);
+  const linhaRedstone = (textura: string) => ({ 'line-pattern': textura, 'line-width': REDSTONE_PX });
+  const invisivel = { 'line-opacity': 0 };
+  const formato = redstone
+    ? ({ 'line-cap': 'butt', 'line-join': 'miter' } as const)
+    : ({ 'line-cap': 'round', 'line-join': 'round' } as const);
+
   map.addSource(ALT_SOURCE, { type: 'geojson', data: EMPTY });
-  const alt = { type: 'line', source: ALT_SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' } } as const;
-  map.addLayer({ ...alt, id: 'route-alt-casing', paint: { 'line-color': ALT_CASING, 'line-width': width(2) } }, beforeId);
-  map.addLayer({ ...alt, id: 'route-alt-line', paint: { 'line-color': ALT_COLOR, 'line-width': width(-2) } }, beforeId);
+  const alt = { type: 'line', source: ALT_SOURCE, layout: formato } as const;
+  map.addLayer(
+    { ...alt, id: 'route-alt-casing', paint: redstone ? invisivel : { 'line-color': ALT_CASING, 'line-width': width(2) } },
+    beforeId,
+  );
+  map.addLayer(
+    { ...alt, id: 'route-alt-line', paint: redstone ? linhaRedstone('redstone-apagada-mc') : { 'line-color': ALT_COLOR, 'line-width': width(-2) } },
+    beforeId,
+  );
   // Área de toque: larga (≈ 44 px) e transparente. queryRenderedFeatures considera a
   // largura da linha, não a opacidade, então ela "pega" o toque mesmo invisível.
   map.addLayer({ ...alt, id: ALT_HIT_LAYER, paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 44 } }, beforeId);
 
   map.addSource(SOURCE, { type: 'geojson', data: EMPTY });
-  const common = { type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' } } as const;
+  const common = { type: 'line', source: SOURCE, layout: formato } as const;
   map.addLayer(
-    { ...common, id: 'route-glow', paint: { 'line-color': c.glow, 'line-width': width(14), 'line-blur': 10, 'line-opacity': 0.45 } },
+    {
+      ...common,
+      id: 'route-glow',
+      paint: redstone ? invisivel : { 'line-color': c.glow, 'line-width': width(14), 'line-blur': 10, 'line-opacity': 0.45 },
+    },
     beforeId,
   );
-  map.addLayer({ ...common, id: 'route-casing', paint: { 'line-color': c.casing, 'line-width': width(5) } }, beforeId);
-  map.addLayer({ ...common, id: 'route-line', paint: { 'line-color': c.color, 'line-width': width(0) } }, beforeId);
+  map.addLayer({ ...common, id: 'route-casing', paint: redstone ? invisivel : { 'line-color': c.casing, 'line-width': width(5) } }, beforeId);
+  map.addLayer(
+    { ...common, id: 'route-line', paint: redstone ? linhaRedstone('redstone-mc') : { 'line-color': c.color, 'line-width': width(0) } },
+    beforeId,
+  );
   updateData(map);
   updateAlternatives(map);
+}
+
+/** Redstone: 2 blocos de largura (1 bloco = 4 px de tela no Minecraft (mapa); ver patterns.ts). */
+const REDSTONE_PX = 8;
+
+/** As texturas da rota entram depois do style.load (que só registra as do estilo): garante aqui. */
+function garantirTextura(map: maplibregl.Map, id: string): void {
+  const textura = imagemDeTextura(id);
+  if (textura && !map.hasImage(id)) map.addImage(id, textura, { pixelRatio: textura.pixelRatio ?? 1 });
 }
 
 function updateData(map: maplibregl.Map): void {
